@@ -13,6 +13,7 @@ namespace Ibcraft.DataAccess
         }
 
         public DbSet<UserEntity> Users { get; set; }
+        public DbSet<QuestionnairePlayerEntity> Questions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -11,6 +11,7 @@ namespace ibcraftservice.Extensions
         public static void AddMappedEndpoints(this IEndpointRouteBuilder app)
         {
             app.MapUsersEndpoints();
+            app.MapQuestionnaireEndpoints();
         }
 
         public static void AddApiAuthentication(this IServiceCollection services, IConfiguration configuration)

@@ -39,5 +39,17 @@ namespace Ibcraft.Infrastructure
                 );
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        public string GetEmailFromToken(string token)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            if (handler.CanReadToken(token))
+            {
+                var result = handler.ReadJwtToken(token);
+                return result.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            }
+            return "";
+        }
+
     }
 }

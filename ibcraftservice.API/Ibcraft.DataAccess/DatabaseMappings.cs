@@ -17,7 +17,8 @@ namespace Ibcraft.DataAccess
                     entity.IsEmailConfirmed,
                     entity.EmailConfirmedToken,
                     entity.Created_at
-                )); ;
+                ));
+            CreateMap<QuestionnairePlayerEntity, QuestionnairePlayerModule>();
         }
     }
 }

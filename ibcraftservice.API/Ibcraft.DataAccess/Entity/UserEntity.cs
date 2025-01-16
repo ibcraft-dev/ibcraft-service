@@ -23,6 +23,8 @@ namespace Ibcraft.DataAccess.Entity
         public bool IsEmailConfirmed { get; set; }
         public string EmailConfirmedToken { get; set; } = string.Empty;
 
-        public DateTime Created_at { get; set; } 
+        public DateTime Created_at { get; set; }
+
+        public List<QuestionnairePlayerEntity> Questions { get; set; } = [];
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Ibcraft.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Ibcraft.DataAccess.Migrations
 {
     [DbContext(typeof(IbCraftDbContext))]
-    partial class IbCraftDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250116165812_quest")]
+    partial class quest
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -54,14 +57,14 @@ namespace Ibcraft.DataAccess.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid>("UserID")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserID");
 
-                    b.ToTable("Questions");
+                    b.ToTable("QuestionnairePlayerEntity");
                 });
 
             modelBuilder.Entity("Ibcraft.DataAccess.Entity.UserEntity", b =>
@@ -104,7 +107,7 @@ namespace Ibcraft.DataAccess.Migrations
                 {
                     b.HasOne("Ibcraft.DataAccess.Entity.UserEntity", "User")
                         .WithMany("Questions")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("UserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

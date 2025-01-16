@@ -27,8 +27,10 @@ builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IEmailProvider,  EmailProvider>();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IQuestionnaireRepository, QuestionnaireRepository>();
 
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<QuestionnaireService>();
 
 builder.Services.AddAutoMapper(typeof(DatabaseMappings).Assembly);
 
