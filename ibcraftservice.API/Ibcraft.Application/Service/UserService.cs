@@ -26,6 +26,26 @@ namespace Ibcraft.Application.Service
             return result;
         }
 
+        public async Task<bool> Forgot(string email)
+        {
+            var (result, token) = await _userRepository.ForgotPasword(email);
+            if (result)
+            {
+                var confirmationLink = $"https://localhost:7157/resetpassword?email={email}&token={token}";
+                await _emailProvider.SendEmailAsync(email, "Смена пароля", $"Перейдите по ссылке, чтобы сменить пароль: {confirmationLink}");
+            }
+            return result;
+        }
+
+        public async Task<bool> Reset(string password, string token)
+        {
+            if (string.IsNullOrEmpty(password) || password.Length < UserModule.DEFAULT_LENGTH_PASSWORD) throw new ArgumentException("The password is too short!");
+
+            var passwordHash = _passwordHasher.Generate(password);
+            var result = await _userRepository.ResetPassword(passwordHash, token);
+            return result;
+        }
+
         public async Task Register(string nikname, string email, string password)
         {
             if (string.IsNullOrEmpty(password) || password.Length < UserModule.DEFAULT_LENGTH_PASSWORD) throw new ArgumentException("The password is too short!");

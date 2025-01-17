@@ -7,5 +7,10 @@ namespace Ibcraft.Application.Interfaces.Repositories
         Task Add(UserModule user);
         Task<UserModule> GetByEmail(string email);
         Task<bool> ConfirmEmailAsync(string email, string token);
+        Task<List<UserModule>> GetAll();
+        Task UpdateNikname(Guid id, string nikname);
+        Task UpdatePassword(Guid id, string passwordHeash);
+        Task<(bool, string)> ForgotPasword(string email);
+        Task<bool> ResetPassword(string newPasswordHash, string token);
     }
 }

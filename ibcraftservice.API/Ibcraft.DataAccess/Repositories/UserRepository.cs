@@ -91,19 +91,20 @@ namespace Ibcraft.DataAccess.Repositories
                 .ExecuteDeleteAsync();
         }
 
-        public async Task<bool> ForgotPasword(string email)
+        public async Task<(bool, string)> ForgotPasword(string email)
         {
             var user =  await _dbContext.Users
                 .FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
             {
-                return false;
+                return (false, string.Empty);
             }
+            string token = Guid.NewGuid().ToString();
 
-            user.PasswordResetToken = Guid.NewGuid().ToString();
+            user.PasswordResetToken = token;
             user.TokenExpiration = DateTime.UtcNow.AddHours(1);
             await _dbContext.SaveChangesAsync();
-            return true;
+            return (true, token);
         }
 
         public async Task<bool> ResetPassword(string newPasswordHash, string token)

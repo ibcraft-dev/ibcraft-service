@@ -57,7 +57,7 @@ namespace Ibcraft.Core.Module
                 throw new ArgumentException("Email invalid!");
             }
             
-            var user = new UserModule(id, nikname, email, password, string.Empty, false, Guid.NewGuid().ToString(), DateTime.Now);
+            var user = new UserModule(id, nikname, email, password, string.Empty, false, Guid.NewGuid().ToString(), string.Empty, DateTime.Now);
             return user;
                 
         }

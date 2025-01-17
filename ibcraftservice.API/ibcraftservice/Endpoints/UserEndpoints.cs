@@ -16,16 +16,49 @@ namespace ibcraftservice.Endpoints
 
             builder.MapPost("logout", Logout);
 
-            builder.MapPost("reset", Reset);
+            builder.MapPost("forgot", ForgotPassword);
+
+            builder.MapPost("reset", ResetPassword);
 
             builder.MapGet("confirm-email", ConfirmEmail);
 
             return builder;
         }
 
-        private static async Task Reset(HttpContext context)
+        private static async Task<IResult> ResetPassword([FromBody] ResetPasswordRequest resetPassword, UserService user)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(resetPassword.Token))
+            {
+                return Results.BadRequest("Invaild token");
+            }
+
+            if(string.IsNullOrEmpty(resetPassword.NewPassword) || string.IsNullOrEmpty(resetPassword.ConfirmPassword)) { 
+                return Results.BadRequest("Поля ввода не должны быть пустыми!");
+            }
+
+            if (resetPassword.NewPassword != resetPassword.ConfirmPassword)
+            {
+                return Results.BadRequest("Пароли не совпадают!");
+            }
+            
+
+            var result = await user.Reset(resetPassword.NewPassword, resetPassword.Token);
+            if (result)
+                return Results.Ok("Ваш пароль успешно изменен!");
+
+            return Results.BadRequest("Ой, шото пошло не так");
+        }
+
+        private static async Task<IResult> ForgotPassword([FromBody] PasswordRecoveryRequest recoveryRequest, UserService user)
+        {
+            var result = await user.Forgot(recoveryRequest.Email);
+            if (result)
+            {
+                return Results.Ok("Запрос на смену пароля, был отправлен на вашу почту");
+            }
+                
+            return Results.BadRequest("Запрос по смени пароля не был отпрален, профиль с таким email был не найден.");
+
         }
 
         private static IResult Logout(HttpContext context)
