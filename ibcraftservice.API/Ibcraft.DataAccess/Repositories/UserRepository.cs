@@ -57,6 +57,38 @@ namespace Ibcraft.DataAccess.Repositories
             return map;
         }
 
+        public async Task<List<UserModule>> GetAll()
+        {
+            var userEntity = await _dbContext.Users
+                .AsNoTracking()
+                .ToListAsync();
+            return _mapper.Map<List<UserModule>>(userEntity);
+        }
+
+        public async Task UpdateNikname(Guid id, string nikname)
+        {
+            await _dbContext.Users
+                .Where(u => u.Id == id)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(u => u.Nikname, nikname));
+        }
+
+
+        public async Task UpdatePassword(Guid id, string passwordHeash)
+        {
+            await _dbContext.Users
+                .Where (u => u.Id == id)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(u => u.Password, passwordHeash));
+        }
+
+        public async Task DeleteUser(Guid id)
+        {
+            await _dbContext.Users
+                .Where (u => u.Id == id)
+                .ExecuteDeleteAsync();
+        }
+
 
     }
 }

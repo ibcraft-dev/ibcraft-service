@@ -4,7 +4,7 @@ namespace Ibcraft.Core.Module
 {
     public class QuestionnairePlayerModule 
     {
-        private QuestionnairePlayerModule(Guid id, 
+        public QuestionnairePlayerModule(Guid id, 
             Guid userid, 
             int age, 
             bool acceptRole, 

@@ -21,11 +21,20 @@ namespace Ibcraft.Application.Service
 
         public async Task AddQuestionnaire(int Age, bool AcceptRule, bool Playing, bool License, int Building, int Adequacy, string Discription, string token)
         {
-
+            // Это временно
             var userEmail = _provider.GetEmailFromToken(token);
+
             if(!string.IsNullOrEmpty(userEmail))
             {
                 var user = await _userRepository.GetByEmail(userEmail);
+
+                var quest =  await _questionnaireRepository.GetOneQuestionnaire(user.Id);
+
+                if(quest != null)
+                {
+                    throw new Exception("Вы уже подали заявку!");
+                }
+
                 var model = QuestionnairePlayerModule.Create(
                         Guid.NewGuid(),
                         user.Id,
@@ -43,6 +52,26 @@ namespace Ibcraft.Application.Service
 
             throw new AuthenticationException();
             
+        }
+
+        public async Task<List<QuestionnairePlayerModule>> GetAllQuestionnaire()
+        {
+            return await _questionnaireRepository.GetAll();
+        }
+
+        public async Task<string> Approve(Guid id)
+        {
+            return await _questionnaireRepository.ApproveQuestionnaire(id);
+        }
+
+        public async Task<string> Reject(Guid id)
+        {
+            return await _questionnaireRepository.RejectQuestionnaire(id);
+        }
+
+        public async Task Delete(Guid id)
+        {
+            await _questionnaireRepository.DeleteQuestionnaire(id);
         }
     }
 }

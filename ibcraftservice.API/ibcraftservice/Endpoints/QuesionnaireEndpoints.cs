@@ -13,13 +13,38 @@ namespace ibcraftservice.Endpoints
 
             endpoints.MapPost("quest-post", AddQuesionnaire);
             endpoints.MapGet("quest-get", GetAll);
+            endpoints.MapPut("{id:guid}/approved", ApprovedUpdate);
+            endpoints.MapPut("{id:guid}/reject", RejectUpdate);
+            endpoints.MapDelete("{id:guid}/delete", Delete);
 
             return builder;
         }
 
-        private static async Task GetAll(HttpContext context)
+        private static async Task<IResult> Delete([FromRoute] Guid id, QuestionnaireService service)
         {
-            throw new NotImplementedException();
+            await service.Delete(id);
+            return Results.Ok();
+        }
+
+        private static async Task<IResult> ApprovedUpdate([FromRoute] Guid id, QuestionnaireService service)
+        {
+            string status = await service.Approve(id);
+            return Results.Ok(status);
+        }
+
+        private static async Task<IResult> RejectUpdate([FromRoute] Guid id, QuestionnaireService service)
+        {
+            string status = await service.Reject(id);
+            return Results.Ok(status);
+        }
+
+        private static async Task<IResult> GetAll(QuestionnaireService service, HttpContext context)
+        {
+            var quer = await service.GetAllQuestionnaire();
+
+            var response = quer.Select(q => new QuesionnaireResponse(q.Id, q.Age, q.AcceptRule, q.PlayingServer, q.LicenseMinecraft, q.BuildingLevel, q.AdequacyLevel, q.Discription, q.Status));
+
+            return Results.Ok(response);
         }
 
         private static async Task<IResult> AddQuesionnaire([FromBody] QuesionnaireRequest request, QuestionnaireService questionnaireService ,HttpContext context)
@@ -43,5 +68,6 @@ namespace ibcraftservice.Endpoints
 
             return Results.Ok();
         }
+
     }
 }

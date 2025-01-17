@@ -14,9 +14,24 @@ namespace ibcraftservice.Endpoints
 
             builder.MapPost("login", Login);
 
+            builder.MapPost("logout", Logout);
+
+            builder.MapPost("reset", Reset);
+
             builder.MapGet("confirm-email", ConfirmEmail);
 
             return builder;
+        }
+
+        private static async Task Reset(HttpContext context)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static IResult Logout(HttpContext context)
+        {
+            context.Response.Cookies.Delete("cookiesdragon");
+            return Results.Ok();
         }
 
         private static async Task<IResult> ConfirmEmail(string email, string token, UserService user)

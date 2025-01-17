@@ -46,5 +46,53 @@ namespace Ibcraft.DataAccess.Repositories
 
             return _mapper.Map<List<QuestionnairePlayerModule>>(entity);
         }
+
+        public async Task<QuestionnairePlayerModule> GetOneQuestionnaire(Guid id)
+        {
+            var entity = await _dbContext.Questions 
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.UserId == id) ?? null;
+
+            return _mapper.Map<QuestionnairePlayerModule>(entity);
+        }
+
+        public async Task<string> ApproveQuestionnaire(Guid id)
+        {
+            var entity = await _dbContext.Questions
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (entity == null)
+            {
+                throw new ArgumentException("Not found.");
+            }
+
+            entity.Status = "Approved";
+            await _dbContext.SaveChangesAsync();
+            return $"Update status user {entity.Status}, for {entity.UserId}";
+        }
+
+        public async Task<string> RejectQuestionnaire(Guid id)
+        {
+            var entity = await _dbContext.Questions
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (entity == null)
+            {
+                throw new ArgumentException("Not found.");
+            }
+
+            entity.Status = "Reject";
+            await _dbContext.SaveChangesAsync();
+            return $"Update status user {entity.Status}, for {entity.UserId}";
+        }
+
+        public async Task DeleteQuestionnaire(Guid id)
+        {
+            await _dbContext.Questions
+                .Where(q => q.Id == id)
+                .ExecuteDeleteAsync();
+        }
+
+
     }
 }
