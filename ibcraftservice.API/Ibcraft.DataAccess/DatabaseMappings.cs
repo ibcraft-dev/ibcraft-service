@@ -16,6 +16,7 @@ namespace Ibcraft.DataAccess
                     entity.UserAvatar,
                     entity.IsEmailConfirmed,
                     entity.EmailConfirmedToken,
+                    entity.PasswordResetToken,
                     entity.Created_at
                 ));
 

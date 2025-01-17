@@ -4,6 +4,7 @@ using Ibcraft.Application.Interfaces.Repositories;
 using Ibcraft.Core.Module;
 using Ibcraft.DataAccess.Entity;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace Ibcraft.DataAccess.Repositories
 {
@@ -48,6 +49,7 @@ namespace Ibcraft.DataAccess.Repositories
             return true;
         }
 
+
         public async Task<UserModule> GetByEmail(string email)
         {
             var userEntity = await _dbContext.Users.
@@ -89,6 +91,36 @@ namespace Ibcraft.DataAccess.Repositories
                 .ExecuteDeleteAsync();
         }
 
+        public async Task<bool> ForgotPasword(string email)
+        {
+            var user =  await _dbContext.Users
+                .FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+            {
+                return false;
+            }
+
+            user.PasswordResetToken = Guid.NewGuid().ToString();
+            user.TokenExpiration = DateTime.UtcNow.AddHours(1);
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> ResetPassword(string newPasswordHash, string token)
+        {
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.PasswordResetToken == token && u.TokenExpiration > DateTime.UtcNow);
+            if (user == null)
+            {
+                return false;
+            }
+
+            user.Password = newPasswordHash;
+            user.PasswordResetToken = string.Empty;
+            user.TokenExpiration = null;
+
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
 
     }
 }
