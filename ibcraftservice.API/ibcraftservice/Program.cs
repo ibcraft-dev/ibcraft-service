@@ -36,6 +36,13 @@ builder.Services.AddAutoMapper(typeof(DatabaseMappings).Assembly);
 
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(nameof(EmailOptions)));
 
+builder.Services.AddCors(opti =>
+{
+    opti.AddPolicy("AllowAll", builder => builder.AllowAnyOrigin()
+                                                 .AllowAnyMethod()
+                                                 .AllowAnyHeader());
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -59,6 +66,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.AddMappedEndpoints();
-
+app.UseCors("AllowAll");
 
 app.Run();
