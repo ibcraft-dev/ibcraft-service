@@ -78,7 +78,15 @@ namespace ibcraftservice.Endpoints
         private static async Task<IResult> Login([FromBody] LoginUserRequest request, UserService user, HttpContext context)
         {
             var token = await user.Login(request.Email, request.Password);
-            context.Response.Cookies.Append("cookiesdragon", token);
+            var cookieOpt = new CookieOptions
+            {
+                HttpOnly = false,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddDays(1)
+            };
+
+            context.Response.Cookies.Append("dragonkey", token, cookieOpt);
             return Results.Ok();
         }
 

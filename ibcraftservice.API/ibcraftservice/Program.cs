@@ -38,9 +38,12 @@ builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(nameof
 
 builder.Services.AddCors(opti =>
 {
-    opti.AddPolicy("AllowAll", builder => builder.AllowAnyOrigin()
-                                                 .AllowAnyMethod()
-                                                 .AllowAnyHeader());
+    opti.AddPolicy("AllowSpecificOrigin", builder => {
+        builder.WithOrigins("http://localhost:3000")
+                       .AllowAnyMethod()
+                       .AllowAnyHeader()
+                       .AllowCredentials();
+    });
 });
 
 var app = builder.Build();
@@ -56,9 +59,10 @@ app.UseHttpsRedirection();
 
 app.UseCookiePolicy(new CookiePolicyOptions
 {
-    MinimumSameSitePolicy = SameSiteMode.Strict,
-    HttpOnly = HttpOnlyPolicy.Always,
-    Secure = CookieSecurePolicy.Always
+    MinimumSameSitePolicy = SameSiteMode.None,
+    HttpOnly = HttpOnlyPolicy.None,
+    Secure = CookieSecurePolicy.Always,
+    
 });
 
 app.UseAuthentication();
@@ -66,6 +70,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.AddMappedEndpoints();
-app.UseCors("AllowAll");
+app.UseCors("AllowSpecificOrigin");
 
 app.Run();
