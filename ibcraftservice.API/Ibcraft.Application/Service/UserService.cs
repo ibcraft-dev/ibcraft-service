@@ -93,6 +93,18 @@ namespace Ibcraft.Application.Service
             return token.ToString();
         }
 
+        public async Task<UserModule> GetUser(string token)
+        {
+            var iduser = _authProvider.GetIdFromToken(token);
+            return await _userRepository.GetById(iduser);
+        }
+
+        public (bool, string) UserValidation(string token)
+        {
+            var (vaild, message) = _authProvider.ValidationToken(token);
+            return (vaild, message);
+        }
+
     }
 
 }

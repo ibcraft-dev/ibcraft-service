@@ -65,11 +65,12 @@ app.UseCookiePolicy(new CookiePolicyOptions
     
 });
 
+app.UseCors("AllowSpecificOrigin");
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 app.AddMappedEndpoints();
-app.UseCors("AllowSpecificOrigin");
+
 
 app.Run();

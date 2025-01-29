@@ -59,6 +59,15 @@ namespace Ibcraft.DataAccess.Repositories
             return map;
         }
 
+        public async Task<UserModule> GetById(Guid Id)
+        {
+            var userEntity = await _dbContext.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync (u => u.Id == Id);
+            var map = _mapper.Map<UserModule>(userEntity);
+            return map;
+        }
+
         public async Task<List<UserModule>> GetAll()
         {
             var userEntity = await _dbContext.Users

@@ -2,6 +2,7 @@
 
 using Ibcraft.Application.Service;
 using ibcraftservice.Contracts.User;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ibcraftservice.Endpoints
@@ -22,7 +23,52 @@ namespace ibcraftservice.Endpoints
 
             builder.MapGet("confirm-email", ConfirmEmail);
 
+            builder.MapGet("get-user", GetUser).RequireAuthorization()
+                .WithMetadata(new EnableCorsAttribute("AllowSpecificOrigin"));
+
+            builder.MapGet("chack-token", CheckToken).RequireAuthorization()
+                .WithMetadata(new EnableCorsAttribute("AllowSpecificOrigin")); 
+
             return builder;
+        }
+
+        private static IResult CheckToken(HttpContext context, UserService user)
+        {
+            var token = context.Request.Cookies["dragonkey"];
+            if (string.IsNullOrEmpty(token))
+            {
+                return Results.Unauthorized();
+            }
+
+            var (vaild, message) = user.UserValidation(token);
+
+            if (vaild)
+            {
+                return Results.Ok(message);
+            }
+
+            context.Response.Cookies.Delete("dragonkey");
+            return Results.BadRequest(message);
+
+        }
+
+        private static async Task<IResult> GetUser(HttpContext context, UserService user)
+        {
+            var token = context.Request.Cookies["dragonkey"];
+
+            if (string.IsNullOrEmpty(token))
+            {
+                return Results.Unauthorized();
+            }
+
+            var userData = await user.GetUser(token);
+            var response = new UserResponse(userData.Id, userData.Nikname, userData.Email, userData.UserAvatar);
+            if (userData == null)
+            {
+               return Results.BadRequest("Null response");
+            }
+
+            return Results.Ok(response);
         }
 
         private static async Task<IResult> ResetPassword([FromBody] ResetPasswordRequest resetPassword, UserService user)
@@ -63,7 +109,7 @@ namespace ibcraftservice.Endpoints
 
         private static IResult Logout(HttpContext context)
         {
-            context.Response.Cookies.Delete("cookiesdragon");
+            context.Response.Cookies.Delete("dragonkey");
             return Results.Ok();
         }
 
@@ -100,5 +146,7 @@ namespace ibcraftservice.Endpoints
             await user.Register(request.Nikname, request.Email, request.Password);
             return Results.Ok();
         }
+
+
     }
 }
