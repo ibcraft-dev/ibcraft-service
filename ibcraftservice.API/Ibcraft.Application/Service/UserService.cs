@@ -69,28 +69,32 @@ namespace Ibcraft.Application.Service
         }
 
 
-        public async Task<string> Login(string email, string password)
+        public async Task<(string, string)> Login(string email, string password)
         {
             var user = await _userRepository.GetByEmail(email);
+            string errorMessage = string.Empty;
 
             if (user == null) {
-                throw new Exception("Failed to login");
+                errorMessage = "Failed to login!";
+                return (string.Empty, errorMessage);
             }
 
             if (!user.IsEmailConfirmed)
             {
-                throw new Exception("Email not confim!");
+                errorMessage = "Email not confim!";
+                return (string.Empty, errorMessage);
             }
 
             var result = _passwordHasher.Verify(password, user.Password);
 
             if (result == false)
             {
-                throw new Exception("Failed to login");
+                errorMessage = "Failed to login";
+                return (string.Empty, errorMessage);
             }
             var token = _authProvider.GenerateToken(user);
 
-            return token.ToString();
+            return (token.ToString(), errorMessage);
         }
 
         public async Task<UserModule> GetUser(string token)

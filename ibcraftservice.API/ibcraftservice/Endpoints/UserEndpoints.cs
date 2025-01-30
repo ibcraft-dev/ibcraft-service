@@ -123,7 +123,13 @@ namespace ibcraftservice.Endpoints
 
         private static async Task<IResult> Login([FromBody] LoginUserRequest request, UserService user, HttpContext context)
         {
-            var token = await user.Login(request.Email, request.Password);
+            var (token, error) = await user.Login(request.Email, request.Password);
+
+            if (!string.IsNullOrEmpty(error))
+            {
+                return Results.BadRequest(error);
+            }
+
             var cookieOpt = new CookieOptions
             {
                 HttpOnly = false,
