@@ -54,6 +54,11 @@ namespace Ibcraft.Application.Service
             
         }
 
+        public async Task<QuestionnairePlayerModule?> GetQuestionnaire(Guid id) {
+            var data = await _questionnaireRepository.GetOneQuestionnaire(id);
+            return data ?? null;
+        }
+
         public async Task<List<QuestionnairePlayerModule>> GetAllQuestionnaire()
         {
             return await _questionnaireRepository.GetAll();

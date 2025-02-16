@@ -13,11 +13,22 @@ namespace ibcraftservice.Endpoints
 
             endpoints.MapPost("quest-post", AddQuesionnaire);
             endpoints.MapGet("quest-get", GetAll);
+            endpoints.MapGet("{id:guid}/status", Status);
             endpoints.MapPut("{id:guid}/approved", ApprovedUpdate);
             endpoints.MapPut("{id:guid}/reject", RejectUpdate);
             endpoints.MapDelete("{id:guid}/delete", Delete);
 
             return builder;
+        }
+
+        private static async Task<IResult> Status([FromRoute] Guid id, QuestionnaireService service)
+        {
+            var data = await service.GetQuestionnaire(id);
+            if (data == null) {
+                return Results.Ok("Unfiled");
+            }
+
+            return Results.Ok(data.Status);
         }
 
         private static async Task<IResult> Delete([FromRoute] Guid id, QuestionnaireService service)
@@ -49,7 +60,7 @@ namespace ibcraftservice.Endpoints
 
         private static async Task<IResult> AddQuesionnaire([FromBody] QuesionnaireRequest request, QuestionnaireService questionnaireService ,HttpContext context)
         {
-            var token = context.Request.Cookies["cookiesdragon"];
+            var token = context.Request.Cookies["dragonkey"];
 
             if (string.IsNullOrEmpty(token))
             {
