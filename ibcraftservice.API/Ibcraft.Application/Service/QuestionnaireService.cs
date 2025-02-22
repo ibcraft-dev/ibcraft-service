@@ -19,7 +19,7 @@ namespace Ibcraft.Application.Service
             _provider = provider;
         }
 
-        public async Task AddQuestionnaire(int Age, bool AcceptRule, bool Playing, bool License, int Building, int Adequacy, string Discription, string token)
+        public async Task AddQuestionnaire(int Age, string PlayingTime, bool AcceptRule, bool Playing, bool License, int Building, int Adequacy, string Discription, string token)
         {
             // Это временно
             var userEmail = _provider.GetEmailFromToken(token);
@@ -39,6 +39,7 @@ namespace Ibcraft.Application.Service
                         Guid.NewGuid(),
                         user.Id,
                         Age,
+                        PlayingTime,
                         AcceptRule,
                         Playing,
                         License,

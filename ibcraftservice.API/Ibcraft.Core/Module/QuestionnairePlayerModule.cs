@@ -7,6 +7,7 @@ namespace Ibcraft.Core.Module
         public QuestionnairePlayerModule(Guid id, 
             Guid userid, 
             int age, 
+            string playingTime,
             bool acceptRole, 
             bool playingServer, 
             bool licenseMinecraft, 
@@ -18,6 +19,7 @@ namespace Ibcraft.Core.Module
             Id = id;
             UserId = userid;
             Age = age;
+            PlayingTime = playingTime;
             AcceptRule = acceptRole;
             PlayingServer = playingServer;
             LicenseMinecraft = licenseMinecraft;
@@ -31,6 +33,7 @@ namespace Ibcraft.Core.Module
         public Guid Id { get; private set; }
         public Guid UserId { get; private set; }
         public int Age { get; private set; }
+        public string PlayingTime { get;  private set; } = string.Empty;
         public bool AcceptRule { get; private set; }
         public bool PlayingServer { get; private set; }
         public bool LicenseMinecraft { get; private set; }
@@ -39,12 +42,12 @@ namespace Ibcraft.Core.Module
         public string Discription { get; private set; } = string.Empty;
         public string Status { get; private set; } = "Pending";
 
-        public static QuestionnairePlayerModule Create(Guid id, Guid userid, int age, bool acceptRule, bool playing, bool license, int building, int adequacy, string discription, string status = "Pending")
+        public static QuestionnairePlayerModule Create(Guid id, Guid userid, int age, string playngTime, bool acceptRule, bool playing, bool license, int building, int adequacy, string discription, string status = "Pending")
         {
             if (age < 13) throw new ArgumentException("Иди нахуй школьник, тебя тут не ждут. Делай уроки чем играть майнкрафт!");
             if (string.IsNullOrEmpty(discription)) throw new ArgumentException("Description cannot be null");
 
-            return new QuestionnairePlayerModule(id, userid, age, acceptRule, playing, license, building, adequacy, discription, status);
+            return new QuestionnairePlayerModule(id, userid, age, playngTime, acceptRule, playing, license, building, adequacy, discription, status);
 
         }
 

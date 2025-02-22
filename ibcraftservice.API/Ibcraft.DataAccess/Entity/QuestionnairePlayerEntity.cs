@@ -8,6 +8,7 @@ namespace Ibcraft.DataAccess.Entity
         public Guid UserId { get; set; }
         public UserEntity? User { get; set; }
         public int Age { get; set; }
+        public string playingTime { get; set; } = string.Empty;
         public bool AcceptRule { get; set; }
         public bool PlayingServer { get; set; }
         public bool LicenseMinecraft { get; set; }

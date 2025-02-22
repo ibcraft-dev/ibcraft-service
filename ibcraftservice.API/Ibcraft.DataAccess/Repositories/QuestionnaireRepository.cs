@@ -26,6 +26,7 @@ namespace Ibcraft.DataAccess.Repositories
                 Id = playerEntity.Id,
                 UserId = playerEntity.UserId,
                 Age = playerEntity.Age,
+                playingTime = playerEntity.PlayingTime,
                 AcceptRule = playerEntity.AcceptRule,
                 PlayingServer = playerEntity.PlayingServer,
                 LicenseMinecraft = playerEntity.LicenseMinecraft,

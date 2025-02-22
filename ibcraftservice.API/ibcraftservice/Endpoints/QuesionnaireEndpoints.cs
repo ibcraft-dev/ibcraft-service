@@ -53,7 +53,7 @@ namespace ibcraftservice.Endpoints
         {
             var quer = await service.GetAllQuestionnaire();
 
-            var response = quer.Select(q => new QuesionnaireResponse(q.Id, q.Age, q.AcceptRule, q.PlayingServer, q.LicenseMinecraft, q.BuildingLevel, q.AdequacyLevel, q.Discription, q.Status));
+            var response = quer.Select(q => new QuesionnaireResponse(q.Id, q.Age, q.PlayingTime, q.AcceptRule, q.PlayingServer, q.LicenseMinecraft, q.BuildingLevel, q.AdequacyLevel, q.Discription, q.Status));
 
             return Results.Ok(response);
         }
@@ -67,7 +67,11 @@ namespace ibcraftservice.Endpoints
                 return Results.Unauthorized();
             }
 
-            await questionnaireService.AddQuestionnaire(request.Age,
+            try {
+
+            await questionnaireService.AddQuestionnaire(
+                request.Age,
+                request.playingTime,
                 request.AcceptRule,
                 request.PlayingServer,
                 request.LicenseMinecraft,
@@ -76,6 +80,10 @@ namespace ibcraftservice.Endpoints
                 request.Discription,
                 token
                 );
+            } catch (Exception ex) {
+                return Results.BadRequest(ex.Message);
+            }
+
 
             return Results.Ok();
         }

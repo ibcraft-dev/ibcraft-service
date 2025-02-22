@@ -4,6 +4,7 @@ namespace ibcraftservice.Contracts.Quesionnaire
 {
     public record QuesionnaireRequest(
             [Required] int Age,
+            [Required] string playingTime,
             [Required] bool AcceptRule,
             [Required] bool PlayingServer,
             [Required] bool LicenseMinecraft,

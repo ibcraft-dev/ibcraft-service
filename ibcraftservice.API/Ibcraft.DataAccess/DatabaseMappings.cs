@@ -24,6 +24,7 @@ namespace Ibcraft.DataAccess
                     entity.Id,
                     entity.UserId,
                     entity.Age,
+                    entity.playingTime,
                     entity.AcceptRule,
                     entity.PlayingServer,
                     entity.LicenseMinecraft,
