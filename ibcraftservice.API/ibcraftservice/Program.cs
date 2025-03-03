@@ -38,8 +38,9 @@ builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(nameof
 
 builder.Services.AddCors(opti =>
 {
+    var client = builder.Configuration.GetSection("Clientaddress");
     opti.AddPolicy("AllowSpecificOrigin", builder => {
-        builder.WithOrigins("http://localhost:3000")
+        builder.WithOrigins(client.Value)
                        .AllowAnyMethod()
                        .AllowAnyHeader()
                        .AllowCredentials();

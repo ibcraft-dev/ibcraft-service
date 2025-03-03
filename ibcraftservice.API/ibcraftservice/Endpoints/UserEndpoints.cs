@@ -1,5 +1,4 @@
 ﻿
-
 using Ibcraft.Application.Service;
 using ibcraftservice.Contracts.User;
 using Microsoft.AspNetCore.Cors;
@@ -21,7 +20,7 @@ namespace ibcraftservice.Endpoints
 
             builder.MapPost("reset", ResetPassword);
 
-            builder.MapGet("confirm-email", ConfirmEmail);
+            builder.MapPut("confirm-email", ConfirmEmail);
 
             builder.MapGet("get-user", GetUser).RequireAuthorization()
                 .WithMetadata(new EnableCorsAttribute("AllowSpecificOrigin"));
@@ -113,9 +112,9 @@ namespace ibcraftservice.Endpoints
             return Results.Ok();
         }
 
-        private static async Task<IResult> ConfirmEmail(string email, string token, UserService user)
+        private static async Task<IResult> ConfirmEmail([FromBody] ConfirmEmailRequest emailRequest, UserService user)
         {
-            var result = await user.Confirm(email, token);
+            var result = await user.Confirm(emailRequest.Email, emailRequest.Token);
             if (result)
                 return Results.Ok("Email подвержден!");
             return Results.BadRequest("Ошибка подтверждения");
