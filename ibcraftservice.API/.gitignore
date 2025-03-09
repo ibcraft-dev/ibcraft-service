@@ -2,4 +2,5 @@ obj/
 bin/
 .vs/
 
-appsettings.Development.json
+
+ibcraftservice.API/ibcraftservice/appsettings.Development.json
