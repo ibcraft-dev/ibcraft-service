@@ -13,5 +13,6 @@ namespace Ibcraft.Application.Interfaces.Repositories
         Task<(bool, string)> ForgotPasword(string email);
         Task<bool> ResetPassword(string newPasswordHash, string token);
         Task<UserModule> GetById(Guid Id);
+        Task<bool> IsResetTokenValid(string email, string token);
     }
 }

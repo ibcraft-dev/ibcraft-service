@@ -18,7 +18,9 @@ namespace ibcraftservice.Endpoints
 
             builder.MapPost("forgot", ForgotPassword);
 
-            builder.MapPost("reset", ResetPassword);
+            builder.MapPut("reset", ResetPassword);
+
+            builder.MapPost("reset-token", CheckResetToken);
 
             builder.MapPut("confirm-email", ConfirmEmail);
 
@@ -29,6 +31,12 @@ namespace ibcraftservice.Endpoints
                 .WithMetadata(new EnableCorsAttribute("AllowSpecificOrigin")); 
 
             return builder;
+        }
+
+        private static async Task<IResult> CheckResetToken([FromBody] ResetToken resetToken, UserService user)
+        {
+            var vaild = await user.ResetTokenVaild(resetToken.email, resetToken.token);
+            return Results.Ok(vaild);
         }
 
         private static IResult CheckToken(HttpContext context, UserService user)
@@ -93,6 +101,8 @@ namespace ibcraftservice.Endpoints
 
             return Results.BadRequest("Ой, шото пошло не так");
         }
+
+        
 
         private static async Task<IResult> ForgotPassword([FromBody] PasswordRecoveryRequest recoveryRequest, UserService user)
         {

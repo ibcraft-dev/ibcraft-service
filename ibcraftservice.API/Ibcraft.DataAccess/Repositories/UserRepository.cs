@@ -116,6 +116,25 @@ namespace Ibcraft.DataAccess.Repositories
             return (true, token);
         }
 
+        public async Task<bool> IsResetTokenValid(string email, string token)
+        {
+            var user = await _dbContext.Users
+                .FirstOrDefaultAsync(u => u.Email == email && u.PasswordResetToken == token);
+
+            if (user == null)
+            {
+                return false;
+            }
+
+            if (user.TokenExpiration < DateTime.UtcNow)
+            {
+                user.TokenExpiration = null;
+                return false;
+            }
+
+            return true;
+        }
+
         public async Task<bool> ResetPassword(string newPasswordHash, string token)
         {
             var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.PasswordResetToken == token && u.TokenExpiration > DateTime.UtcNow);

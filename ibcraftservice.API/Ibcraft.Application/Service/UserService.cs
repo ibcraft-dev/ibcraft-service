@@ -49,6 +49,12 @@ namespace Ibcraft.Application.Service
             return result;
         }
 
+        public async Task<bool> ResetTokenVaild(string email, string token)
+        {
+            var result = await _userRepository.IsResetTokenValid(email, token);
+            return result;
+        }
+
         public async Task Register(string nikname, string email, string password)
         {
             if (string.IsNullOrEmpty(password) || password.Length < UserModule.DEFAULT_LENGTH_PASSWORD) throw new ArgumentException("The password is too short!");
