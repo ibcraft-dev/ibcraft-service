@@ -116,6 +116,21 @@ namespace Ibcraft.DataAccess.Repositories
             return (true, token);
         }
 
+        public async Task<bool> UpdateAvatarUrl(Guid UserId, string url)
+        {
+            var user = await _dbContext.Users
+                .FirstOrDefaultAsync(u => u.Id == UserId);
+
+            if (user == null)
+            {
+                return false;
+            }
+
+            user.UserAvatar = url;
+            await _dbContext.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<bool> IsResetTokenValid(string email, string token)
         {
             var user = await _dbContext.Users

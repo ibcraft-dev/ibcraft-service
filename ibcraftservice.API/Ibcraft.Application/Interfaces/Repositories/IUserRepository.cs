@@ -14,5 +14,6 @@ namespace Ibcraft.Application.Interfaces.Repositories
         Task<bool> ResetPassword(string newPasswordHash, string token);
         Task<UserModule> GetById(Guid Id);
         Task<bool> IsResetTokenValid(string email, string token);
+        Task<bool> UpdateAvatarUrl(Guid UserId, string url);
     }
 }

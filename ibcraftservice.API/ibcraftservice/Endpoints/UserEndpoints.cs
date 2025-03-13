@@ -22,6 +22,9 @@ namespace ibcraftservice.Endpoints
 
             builder.MapPost("reset-token", CheckResetToken);
 
+            builder.MapPut("update-avatar", UploadAvatar)
+                .RequireAuthorization();
+
             builder.MapPut("confirm-email", ConfirmEmail);
 
             builder.MapGet("get-user", GetUser).RequireAuthorization()
@@ -31,6 +34,28 @@ namespace ibcraftservice.Endpoints
                 .WithMetadata(new EnableCorsAttribute("AllowSpecificOrigin")); 
 
             return builder;
+        }
+
+        private static async Task<IResult> UploadAvatar(UserService user, HttpContext context, IWebHostEnvironment webHost)
+        {
+            var file = context.Request.Form.Files["file"];
+
+            if (file == null || file.Length == 0) {
+                return Results.BadRequest("File not upload");
+            }
+
+            var token = context.Request.Cookies["dragonkey"];
+            if (token == null) {
+                return Results.Unauthorized();
+            }
+
+            var result = await user.UpdateUserAvatar(token, file, webHost.ContentRootPath);
+            if (!result)
+            {
+                return Results.BadRequest("Не удалось обновить аватар.");
+            }
+
+            return Results.Ok(new { message = "Аватар обновлен успешно" });
         }
 
         private static async Task<IResult> CheckResetToken([FromBody] ResetToken resetToken, UserService user)

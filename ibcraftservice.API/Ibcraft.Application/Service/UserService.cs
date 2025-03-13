@@ -2,6 +2,7 @@
 using Ibcraft.Application.Interfaces.Auth;
 using Ibcraft.Application.Interfaces.Repositories;
 using Ibcraft.Core.Module;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 
 namespace Ibcraft.Application.Service
@@ -115,6 +116,24 @@ namespace Ibcraft.Application.Service
         {
             var (vaild, message) = _authProvider.ValidationToken(token);
             return (vaild, message);
+        }
+
+        public async Task<bool> UpdateUserAvatar(string token, IFormFile file, string path)
+        {
+            var IdUser = _authProvider.GetIdFromToken(token);
+            var staticFolder = Path.Combine(path, "static/avatars");
+            Directory.CreateDirectory(staticFolder);
+
+            var fileName = $"{IdUser}{Path.GetExtension(file.FileName)}";
+            var filePath = Path.Combine(staticFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var avatarUrl = $"/static/avatars/{fileName}";
+            return await _userRepository.UpdateAvatarUrl(IdUser, avatarUrl);
         }
     }
 
