@@ -135,6 +135,18 @@ namespace Ibcraft.Application.Service
             var avatarUrl = $"/static/avatars/{fileName}";
             return await _userRepository.UpdateAvatarUrl(IdUser, avatarUrl);
         }
+
+        public async Task<bool> UpdateUserNikname(string token, string name)
+        {
+            var IdUser = _authProvider.GetIdFromToken(token);
+            return await _userRepository.UpdateNikname(IdUser, name);
+        }
+
+        public async Task DeleteUser(string token)
+        {
+            var IdUser = _authProvider.GetIdFromToken(token);
+            await _userRepository.DeleteUser(IdUser);
+        }
     }
 
 }

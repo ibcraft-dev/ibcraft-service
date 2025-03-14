@@ -12,13 +12,35 @@ namespace ibcraftservice.Endpoints
             var endpoints = builder.MapGroup("quesionnaire").RequireAuthorization();
 
             endpoints.MapPost("quest-post", AddQuesionnaire);
-            endpoints.MapGet("quest-get", GetAll);
+            endpoints.MapGet("quest-getall", GetAll);
             endpoints.MapGet("{id:guid}/status", Status);
+            endpoints.MapGet("{id:guid}/view", GetView);
             endpoints.MapPut("{id:guid}/approved", ApprovedUpdate);
             endpoints.MapPut("{id:guid}/reject", RejectUpdate);
             endpoints.MapDelete("{id:guid}/delete", Delete);
 
             return builder;
+        }
+
+        private static async Task<IResult> GetView([FromRoute] Guid id, QuestionnaireService service)
+        {
+            var data = await service.GetQuestionnaire(id);
+            if (data == null)
+            {
+                return Results.BadRequest();
+            }
+
+            return Results.Ok(new QuesionnaireResponse(data.Id, 
+                data.Age, 
+                data.PlayingTime, 
+                data.AcceptRule, 
+                data.PlayingServer, 
+                data.LicenseMinecraft,
+                data.BuildingLevel,
+                data.AdequacyLevel,
+                data.Discription,
+                data.Status
+                ));
         }
 
         private static async Task<IResult> Status([FromRoute] Guid id, QuestionnaireService service)

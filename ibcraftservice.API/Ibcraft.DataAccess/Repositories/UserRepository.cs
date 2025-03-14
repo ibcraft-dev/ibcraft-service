@@ -76,12 +76,13 @@ namespace Ibcraft.DataAccess.Repositories
             return _mapper.Map<List<UserModule>>(userEntity);
         }
 
-        public async Task UpdateNikname(Guid id, string nikname)
+        public async Task<bool> UpdateNikname(Guid id, string nikname)
         {
             await _dbContext.Users
                 .Where(u => u.Id == id)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(u => u.Nikname, nikname));
+            return true;
         }
 
 
@@ -165,6 +166,7 @@ namespace Ibcraft.DataAccess.Repositories
             await _dbContext.SaveChangesAsync();
             return true;
         }
+
 
     }
 }

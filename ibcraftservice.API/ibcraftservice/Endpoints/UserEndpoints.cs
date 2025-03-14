@@ -27,13 +27,39 @@ namespace ibcraftservice.Endpoints
 
             builder.MapPut("confirm-email", ConfirmEmail);
 
-            builder.MapGet("get-user", GetUser).RequireAuthorization()
+            builder.MapGet("get-me", GetUser).RequireAuthorization()
                 .WithMetadata(new EnableCorsAttribute("AllowSpecificOrigin"));
 
             builder.MapGet("chack-token", CheckToken).RequireAuthorization()
-                .WithMetadata(new EnableCorsAttribute("AllowSpecificOrigin")); 
+                .WithMetadata(new EnableCorsAttribute("AllowSpecificOrigin"));
+
+            builder.MapPut("nikname-update", NiknameUpdate).RequireAuthorization();
+            builder.MapDelete("delete-user", DeleteUser).RequireAuthorization();
 
             return builder;
+        }
+
+        private static async Task<IResult> DeleteUser(HttpContext context, UserService user)
+        {
+            var token = context.Request.Cookies["dragonkey"];
+            if (token == null)
+            {
+                return Results.Unauthorized();
+            }
+
+            await user.DeleteUser(token);
+            return Results.Ok();
+        }
+
+        private static async Task<IResult> NiknameUpdate([FromBody] UpdateNikname updateNikname, UserService user, HttpContext context)
+        {
+            var token = context.Request.Cookies["dragonkey"];
+            if (token == null) {
+                return Results.Unauthorized();
+            }
+
+            await user.UpdateUserNikname(token, updateNikname.newNikname);
+            return Results.Ok("Никнейм обновлен успешно");
         }
 
         private static async Task<IResult> UploadAvatar(UserService user, HttpContext context, IWebHostEnvironment webHost)
@@ -55,7 +81,7 @@ namespace ibcraftservice.Endpoints
                 return Results.BadRequest("Не удалось обновить аватар.");
             }
 
-            return Results.Ok(new { message = "Аватар обновлен успешно" });
+            return Results.Ok("Аватар обновлен успешно");
         }
 
         private static async Task<IResult> CheckResetToken([FromBody] ResetToken resetToken, UserService user)

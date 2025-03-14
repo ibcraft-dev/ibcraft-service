@@ -21,12 +21,11 @@ namespace Ibcraft.Application.Service
 
         public async Task AddQuestionnaire(int Age, string PlayingTime, bool AcceptRule, bool Playing, bool License, int Building, int Adequacy, string Discription, string token)
         {
-            // Это временно
-            var userEmail = _provider.GetEmailFromToken(token);
+            var userId = _provider.GetIdFromToken(token);
 
-            if(!string.IsNullOrEmpty(userEmail))
+            if(userId != Guid.Empty)
             {
-                var user = await _userRepository.GetByEmail(userEmail);
+                var user = await _userRepository.GetById(userId);
 
                 var quest =  await _questionnaireRepository.GetOneQuestionnaire(user.Id);
 
