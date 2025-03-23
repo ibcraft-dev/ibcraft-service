@@ -30,7 +30,8 @@ namespace ibcraftservice.Endpoints
                 return Results.BadRequest();
             }
 
-            return Results.Ok(new QuesionnaireResponse(data.Id, 
+            return Results.Ok(new QuesionnaireResponse(data.Id,
+                data.UserId,
                 data.Age, 
                 data.PlayingTime, 
                 data.AcceptRule, 
@@ -75,7 +76,18 @@ namespace ibcraftservice.Endpoints
         {
             var quer = await service.GetAllQuestionnaire();
 
-            var response = quer.Select(q => new QuesionnaireResponse(q.Id, q.Age, q.PlayingTime, q.AcceptRule, q.PlayingServer, q.LicenseMinecraft, q.BuildingLevel, q.AdequacyLevel, q.Discription, q.Status));
+            var response = quer.Select(q => new QuesionnaireResponse(
+                q.Id, 
+                q.UserId, 
+                q.Age, 
+                q.PlayingTime, 
+                q.AcceptRule, 
+                q.PlayingServer, 
+                q.LicenseMinecraft, 
+                q.BuildingLevel, 
+                q.AdequacyLevel, 
+                q.Discription, 
+                q.Status));
 
             return Results.Ok(response);
         }

@@ -53,7 +53,7 @@ namespace Ibcraft.DataAccess.Repositories
         {
             var entity = await _dbContext.Questions 
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.UserId == id) ?? null;
+                .FirstOrDefaultAsync(x => x.Id == id) ?? null;
 
             return _mapper.Map<QuestionnairePlayerModule>(entity);
         }
