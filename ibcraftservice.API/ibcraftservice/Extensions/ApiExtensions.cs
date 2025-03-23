@@ -11,6 +11,7 @@ namespace ibcraftservice.Extensions
         public static void AddMappedEndpoints(this IEndpointRouteBuilder app)
         {
             app.MapUsersEndpoints();
+            app.MapQuestionnaireEndpoints();
         }
 
         public static void AddApiAuthentication(this IServiceCollection services, IConfiguration configuration)
@@ -37,10 +38,27 @@ namespace ibcraftservice.Extensions
                     {
                         OnMessageReceived = context =>
                         {
-                            context.Token = context.Request.Cookies["cookiesdragon"];
+                            context.Token = context.Request.Cookies["dragonkey"];
 
                             return Task.CompletedTask;
+                        },
+
+                        OnChallenge = context =>
+                        {
+                            context.HandleResponse();
+
+                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                            context.Response.ContentType = "application/json";
+
+                            var response = new
+                            {
+                                error = "Unauthorized",
+                                message = "Token is missing, invalid, or expired."
+                            };
+
+                            return context.Response.WriteAsJsonAsync(response);
                         }
+
                     };
                 });
 

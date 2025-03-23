@@ -27,4 +27,8 @@
     <ProjectReference Include="..\Ibcraft.Infrastructure\Ibcraft.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="static\" />
+  </ItemGroup>
+
 </Project>

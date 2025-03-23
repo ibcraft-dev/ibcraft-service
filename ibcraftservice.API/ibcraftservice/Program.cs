@@ -7,6 +7,7 @@ using Ibcraft.Infrastructure;
 using ibcraftservice.Extensions;
 using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,14 +28,28 @@ builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IEmailProvider,  EmailProvider>();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IQuestionnaireRepository, QuestionnaireRepository>();
 
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<QuestionnaireService>();
 
 builder.Services.AddAutoMapper(typeof(DatabaseMappings).Assembly);
 
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(nameof(EmailOptions)));
 
+builder.Services.AddCors(opti =>
+{
+    var client = builder.Configuration.GetSection("Clientaddress");
+    opti.AddPolicy("AllowSpecificOrigin", builder => {
+        builder.WithOrigins(client.Value)
+                       .AllowAnyMethod()
+                       .AllowAnyHeader()
+                       .AllowCredentials();
+    });
+});
+
 var app = builder.Build();
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -42,16 +57,24 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(builder.Environment.ContentRootPath, "static")),
+    RequestPath = "/static"
+});
+
 
 app.UseHttpsRedirection();
 
 app.UseCookiePolicy(new CookiePolicyOptions
 {
-    MinimumSameSitePolicy = SameSiteMode.Strict,
-    HttpOnly = HttpOnlyPolicy.Always,
-    Secure = CookieSecurePolicy.Always
+    MinimumSameSitePolicy = SameSiteMode.None,
+    HttpOnly = HttpOnlyPolicy.None,
+    Secure = CookieSecurePolicy.Always,
+    
 });
 
+app.UseCors("AllowSpecificOrigin");
 app.UseAuthentication();
 app.UseAuthorization();
 

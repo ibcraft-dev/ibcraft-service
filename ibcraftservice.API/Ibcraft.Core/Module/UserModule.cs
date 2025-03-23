@@ -12,6 +12,7 @@ namespace Ibcraft.Core.Module
             string userAvatar,
             bool isEmailConfirmed, 
             string tokenEmail,
+            string tokenReset,
             DateTime created_at)
         {
             Id = id;
@@ -22,6 +23,7 @@ namespace Ibcraft.Core.Module
             UserAvatar = userAvatar;
             Created_at = created_at;
             EmailConfirmedToken = tokenEmail;
+            PasswordResetToken = tokenReset;
         }
 
         public Guid Id { get; private set; }
@@ -31,6 +33,7 @@ namespace Ibcraft.Core.Module
         public string UserAvatar { get; private set; } = string.Empty;
         public bool IsEmailConfirmed { get; private set; }
         public string EmailConfirmedToken { get; set; } = string.Empty;
+        public string PasswordResetToken { get; set; } = string.Empty;
         public DateTime Created_at {  get; private set; }
 
         private static bool IsValidEmail(string email)
@@ -54,7 +57,7 @@ namespace Ibcraft.Core.Module
                 throw new ArgumentException("Email invalid!");
             }
             
-            var user = new UserModule(id, nikname, email, password, string.Empty, false, Guid.NewGuid().ToString(), DateTime.Now);
+            var user = new UserModule(id, nikname, email, password, string.Empty, false, Guid.NewGuid().ToString(), string.Empty, DateTime.Now);
             return user;
                 
         }

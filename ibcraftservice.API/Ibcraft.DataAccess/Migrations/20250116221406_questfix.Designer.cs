@@ -3,6 +3,7 @@ using System;
 using Ibcraft.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Ibcraft.DataAccess.Migrations
 {
     [DbContext(typeof(IbCraftDbContext))]
-    partial class IbCraftDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250116221406_questfix")]
+    partial class questfix
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -57,10 +60,6 @@ namespace Ibcraft.DataAccess.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("playingTime")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
@@ -94,13 +93,6 @@ namespace Ibcraft.DataAccess.Migrations
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<string>("PasswordResetToken")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("TokenExpiration")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UserAvatar")
                         .IsRequired()

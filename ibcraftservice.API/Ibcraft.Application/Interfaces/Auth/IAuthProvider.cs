@@ -7,5 +7,8 @@ namespace Ibcraft.Application.Interfaces.Auth
     {
         string GenerateToken(UserModule userModule);
         List<Claim> GetClaimsForUser(UserModule userModule);
+        string GetEmailFromToken(string token);
+        Guid GetIdFromToken(string token);
+        (bool, string) ValidationToken(string token);
     }
 }
