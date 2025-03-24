@@ -1,6 +1,7 @@
 ﻿
 using AutoMapper;
 using Ibcraft.Application.Interfaces.Repositories;
+using Ibcraft.Core.Enums;
 using Ibcraft.Core.Module;
 using Ibcraft.DataAccess.Entity;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +21,12 @@ namespace Ibcraft.DataAccess.Repositories
 
         public async Task Add(UserModule user)
         {
-            
+            //Временый хардкод для теста 
+
+            var roleEntity = await _dbContext.Roles
+                .SingleOrDefaultAsync(r => r.Id == (int)Role.User)
+                ?? throw new DataException("Role not found");
+
             var userEntity = new UserEntity
             {
                 Id = user.Id,
@@ -30,6 +36,7 @@ namespace Ibcraft.DataAccess.Repositories
                 IsEmailConfirmed = false,
                 EmailConfirmedToken = user.EmailConfirmedToken,
                 Created_at = DateTime.Now,
+                Roles = [roleEntity]
             };
 
             await _dbContext.Users.AddAsync(userEntity);
@@ -165,6 +172,19 @@ namespace Ibcraft.DataAccess.Repositories
 
             await _dbContext.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<HashSet<Permission>> GetUserPermissions(Guid userId)
+        {
+            var roles = await _dbContext.Users
+                 .AsNoTracking()
+                 .Include(u => u.Roles)
+                 .ThenInclude(r => r.Permissions)
+                 .Where(u => u.Id == userId)
+                 .Select(u => u.Roles)
+                 .ToListAsync();
+
+            return roles.SelectMany(r => r).SelectMany(r => r.Permissions).Select(p => (Permission)p.Id).ToHashSet();
         }
 
 

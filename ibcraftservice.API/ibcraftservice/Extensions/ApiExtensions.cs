@@ -1,6 +1,10 @@
-﻿using Ibcraft.Infrastructure;
+﻿using Ibcraft.Application.Interfaces.Service;
+using Ibcraft.Application.Service;
+using Ibcraft.Core.Enums;
+using Ibcraft.Infrastructure.Authentication;
 using ibcraftservice.Endpoints;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -61,8 +65,17 @@ namespace ibcraftservice.Extensions
 
                     };
                 });
+            services.AddScoped<IPermissionService, PermissionService>();
+            services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
-            services.AddAuthorization();
+            services.AddAuthorization();    
+        }
+
+        public static IEndpointConventionBuilder RequirePermissions<TBuilder>(this TBuilder buider,
+            params Permission[] permissions) where TBuilder : IEndpointConventionBuilder
+        {
+            return buider.RequireAuthorization(policy => 
+                policy.AddRequirements(new PermissionRequirement(permissions)));
         }
     }
 }

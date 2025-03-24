@@ -1,8 +1,6 @@
-﻿
+﻿using Ibcraft.Application.Interfaces.Auth;
 
-using Ibcraft.Application.Interfaces.Auth;
-
-namespace Ibcraft.Infrastructure
+namespace Ibcraft.Infrastructure.Authentication
 {
     public class PasswordHasher : IPasswordHasher
     {

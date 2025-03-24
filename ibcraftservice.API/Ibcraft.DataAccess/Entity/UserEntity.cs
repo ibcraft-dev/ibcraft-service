@@ -26,6 +26,8 @@ namespace Ibcraft.DataAccess.Entity
         public DateTime? TokenExpiration { get; set; }
         public DateTime Created_at { get; set; }
 
+        public ICollection<RoleEntity> Roles { get; set; } = [];
+
         public List<QuestionnairePlayerEntity> Questions { get; set; } = [];
     }
 }

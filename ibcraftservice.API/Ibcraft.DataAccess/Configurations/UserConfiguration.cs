@@ -16,6 +16,13 @@ namespace Ibcraft.DataAccess.Configurations
                 .WithOne(q => q.User)
                 .HasForeignKey(x => x.UserId);
 
+            builder.HasMany(r => r.Roles)
+                .WithMany(u => u.Users)
+                .UsingEntity<UserRoleEntity>(
+                    l => l.HasOne<RoleEntity>().WithMany().HasForeignKey(x => x.RoleId),
+                    r => r.HasOne<UserEntity>().WithMany().HasForeignKey(x => x.UserId)
+                );
+
         }
     }
 }

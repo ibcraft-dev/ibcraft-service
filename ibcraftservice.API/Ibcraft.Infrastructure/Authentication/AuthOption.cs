@@ -1,6 +1,4 @@
-﻿
-
-namespace Ibcraft.Infrastructure
+﻿namespace Ibcraft.Infrastructure.Authentication
 {
     public class AuthOption
     {

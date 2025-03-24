@@ -1,4 +1,5 @@
-﻿using Ibcraft.Core.Module;
+﻿using Ibcraft.Core.Enums;
+using Ibcraft.Core.Module;
 
 namespace Ibcraft.Application.Interfaces.Repositories
 {
@@ -16,5 +17,6 @@ namespace Ibcraft.Application.Interfaces.Repositories
         Task<bool> IsResetTokenValid(string email, string token);
         Task<bool> UpdateAvatarUrl(Guid UserId, string url);
         Task DeleteUser(Guid id);
+        Task<HashSet<Permission>> GetUserPermissions(Guid userId);
     }
 }

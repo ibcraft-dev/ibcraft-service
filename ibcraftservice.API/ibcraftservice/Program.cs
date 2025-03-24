@@ -4,6 +4,7 @@ using Ibcraft.Application.Service;
 using Ibcraft.DataAccess;
 using Ibcraft.DataAccess.Repositories;
 using Ibcraft.Infrastructure;
+using Ibcraft.Infrastructure.Authentication;
 using ibcraftservice.Extensions;
 using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.EntityFrameworkCore;
@@ -36,6 +37,8 @@ builder.Services.AddScoped<QuestionnaireService>();
 builder.Services.AddAutoMapper(typeof(DatabaseMappings).Assembly);
 
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(nameof(EmailOptions)));
+
+builder.Services.Configure<AuthorizationOptions>(builder.Configuration.GetSection(nameof(AuthorizationOptions)));
 
 builder.Services.AddCors(opti =>
 {

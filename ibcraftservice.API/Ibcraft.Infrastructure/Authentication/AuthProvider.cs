@@ -1,5 +1,4 @@
-﻿
-using Ibcraft.Application.Interfaces.Auth;
+﻿using Ibcraft.Application.Interfaces.Auth;
 using Ibcraft.Core.Module;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -7,7 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace Ibcraft.Infrastructure
+namespace Ibcraft.Infrastructure.Authentication
 {
     public class AuthProvider(IOptions<AuthOption> options) : IAuthProvider
     {
@@ -23,7 +22,7 @@ namespace Ibcraft.Infrastructure
         {
             List<Claim> list = [
                     new Claim(ClaimTypes.Email, userModule.Email),
-                    new Claim("UserId", userModule.Id.ToString())
+                    new Claim(CustomClaims.UserId, userModule.Id.ToString())
                 ];
 
             return list;

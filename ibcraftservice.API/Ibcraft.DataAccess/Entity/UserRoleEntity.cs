@@ -1,0 +1,11 @@
+﻿
+
+namespace Ibcraft.DataAccess.Entity
+{
+    public class UserRoleEntity
+    {
+        public Guid UserId { get; set; }
+        public int RoleId { get; set; }
+
+    }
+}

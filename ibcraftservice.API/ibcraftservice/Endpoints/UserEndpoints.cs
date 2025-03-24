@@ -1,6 +1,8 @@
 ﻿
 using Ibcraft.Application.Service;
+using Ibcraft.Core.Enums;
 using ibcraftservice.Contracts.User;
+using ibcraftservice.Extensions;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,7 +36,7 @@ namespace ibcraftservice.Endpoints
                 .WithMetadata(new EnableCorsAttribute("AllowSpecificOrigin"));
 
             builder.MapPut("nikname-update", NiknameUpdate).RequireAuthorization();
-            builder.MapDelete("delete-user", DeleteUser).RequireAuthorization();
+            builder.MapDelete("delete-user", DeleteUser).RequireAuthorization().RequirePermissions(Permission.Delete);
 
             return builder;
         }

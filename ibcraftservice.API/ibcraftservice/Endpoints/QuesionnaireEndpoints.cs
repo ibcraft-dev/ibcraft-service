@@ -1,6 +1,8 @@
 ﻿
 using Ibcraft.Application.Service;
+using Ibcraft.Core.Enums;
 using ibcraftservice.Contracts.Quesionnaire;
+using ibcraftservice.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ibcraftservice.Endpoints
@@ -11,13 +13,13 @@ namespace ibcraftservice.Endpoints
         {
             var endpoints = builder.MapGroup("quesionnaire").RequireAuthorization();
 
-            endpoints.MapPost("quest-post", AddQuesionnaire);
-            endpoints.MapGet("quest-getall", GetAll);
-            endpoints.MapGet("{id:guid}/status", Status);
-            endpoints.MapGet("{id:guid}/view", GetView);
-            endpoints.MapPut("{id:guid}/approved", ApprovedUpdate);
-            endpoints.MapPut("{id:guid}/reject", RejectUpdate);
-            endpoints.MapDelete("{id:guid}/delete", Delete);
+            endpoints.MapPost("quest-post", AddQuesionnaire).RequirePermissions(Permission.Read);
+            endpoints.MapGet("quest-getall", GetAll).RequirePermissions(Permission.Read);
+            endpoints.MapGet("{id:guid}/status", Status).RequirePermissions(Permission.Read);
+            endpoints.MapGet("{id:guid}/view", GetView).RequirePermissions(Permission.Read);
+            endpoints.MapPut("{id:guid}/approved", ApprovedUpdate).RequirePermissions(Permission.Update);
+            endpoints.MapPut("{id:guid}/reject", RejectUpdate).RequirePermissions(Permission.Update);
+            endpoints.MapDelete("{id:guid}/delete", Delete).RequirePermissions(Permission.Delete);
 
             return builder;
         }
