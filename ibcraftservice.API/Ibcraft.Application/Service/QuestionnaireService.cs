@@ -27,7 +27,7 @@ namespace Ibcraft.Application.Service
             {
                 var user = await _userRepository.GetById(userId);
 
-                var quest =  await _questionnaireRepository.GetOneQuestionnaire(user.Id);
+                var quest =  await _questionnaireRepository.GetUserOneQuestionnaire(user.Id);
 
                 if(quest != null)
                 {
@@ -55,7 +55,7 @@ namespace Ibcraft.Application.Service
         }
 
         public async Task<QuestionnairePlayerModule?> GetQuestionnaire(Guid id) {
-            var data = await _questionnaireRepository.GetOneQuestionnaire(id);
+            var data = await _questionnaireRepository.GetUserOneQuestionnaire(id);
             return data ?? null;
         }
 

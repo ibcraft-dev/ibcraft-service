@@ -58,6 +58,15 @@ namespace Ibcraft.DataAccess.Repositories
             return _mapper.Map<QuestionnairePlayerModule>(entity);
         }
 
+        public async Task<QuestionnairePlayerModule> GetUserOneQuestionnaire(Guid userid)
+        {
+            var entity = await _dbContext.Questions
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.UserId == userid) ?? null;
+
+            return _mapper.Map<QuestionnairePlayerModule>(entity);
+        }
+
         public async Task<string> ApproveQuestionnaire(Guid id)
         {
             var entity = await _dbContext.Questions

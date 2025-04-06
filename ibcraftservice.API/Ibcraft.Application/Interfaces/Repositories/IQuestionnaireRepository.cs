@@ -7,6 +7,7 @@ namespace Ibcraft.Application.Interfaces.Repositories
         Task Add(QuestionnairePlayerModule playerEntity);
         Task<List<QuestionnairePlayerModule>> GetAll();
         Task<QuestionnairePlayerModule> GetOneQuestionnaire(Guid id);
+        Task<QuestionnairePlayerModule> GetUserOneQuestionnaire(Guid userid);
         Task<string> ApproveQuestionnaire(Guid id);
         Task<string> RejectQuestionnaire(Guid id);
         Task DeleteQuestionnaire(Guid id);
