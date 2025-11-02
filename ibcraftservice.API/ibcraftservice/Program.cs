@@ -9,8 +9,14 @@ using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 
-
+// builder
 var builder = WebApplication.CreateBuilder(args);
+var staticPath = Path.Combine(builder.Environment.ContentRootPath, "static");
+
+if (!Directory.Exists(staticPath))
+{
+    Directory.CreateDirectory(staticPath);
+}
 
 
 builder.Services.AddControllers();
@@ -48,8 +54,8 @@ builder.Services.AddCors(opti =>
     });
 });
 
+// App
 var app = builder.Build();
-
 
 if (app.Environment.IsDevelopment())
 {
@@ -59,7 +65,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(Path.Combine(builder.Environment.ContentRootPath, "static")),
+    
+    FileProvider = new PhysicalFileProvider(staticPath),
     RequestPath = "/static"
 });
 
@@ -80,6 +87,5 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.AddMappedEndpoints();
-
 
 app.Run();
