@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  db_ibcraft:
+    image: postgres:16
+    container_name: postgres-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: dragondev
+      POSTGRES_DB: ibcraftdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend_ibcraft:
+    build: .
+    container_name: backend-ibcraft
+    depends_on:
+      - db_ibcraft
+    ports:
+      - 5185:5185
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
