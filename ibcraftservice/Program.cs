@@ -11,12 +11,15 @@ using Microsoft.Extensions.FileProviders;
 
 // builder
 var builder = WebApplication.CreateBuilder(args);
+
+
 var staticPath = Path.Combine(builder.Environment.ContentRootPath, "static");
 
 if (!Directory.Exists(staticPath))
 {
     Directory.CreateDirectory(staticPath);
 }
+
 
 
 builder.Services.AddControllers();
@@ -46,16 +49,21 @@ builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(nameof
 builder.Services.AddCors(opti =>
 {
     var client = builder.Configuration.GetSection("Clientaddress");
-    opti.AddPolicy("AllowSpecificOrigin", builder => {
-        builder.WithOrigins(client.Value)
-                       .AllowAnyMethod()
-                       .AllowAnyHeader()
-                       .AllowCredentials();
-    });
+    if (!string.IsNullOrEmpty(client.Value))
+    {
+        opti.AddPolicy("AllowSpecificOrigin", builder => {
+            builder.WithOrigins(client.Value)
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials();
+        });
+    } 
 });
 
 // App
 var app = builder.Build();
+var log = app.Logger;
+
 
 if (app.Environment.IsDevelopment())
 {
@@ -65,11 +73,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseStaticFiles(new StaticFileOptions
 {
-    
     FileProvider = new PhysicalFileProvider(staticPath),
     RequestPath = "/static"
 });
 
+log.LogDebug("Hello world");
 
 app.UseHttpsRedirection();
 
@@ -85,7 +93,9 @@ app.UseCors("AllowSpecificOrigin");
 app.UseAuthentication();
 app.UseAuthorization();
 
+
 app.MapControllers();
 app.AddMappedEndpoints();
+app.ApplyMigrations(log);
 
 app.Run();

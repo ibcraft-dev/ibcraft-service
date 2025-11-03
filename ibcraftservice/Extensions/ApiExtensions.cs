@@ -1,6 +1,8 @@
-﻿using Ibcraft.Infrastructure;
+﻿using Ibcraft.DataAccess;
+using Ibcraft.Infrastructure;
 using ibcraftservice.Endpoints;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -8,10 +10,27 @@ namespace ibcraftservice.Extensions
 {
     public static class ApiExtensions
     {
+
         public static void AddMappedEndpoints(this IEndpointRouteBuilder app)
         {
             app.MapUsersEndpoints();
             app.MapQuestionnaireEndpoints();
+            
+        }
+
+        public static void ApplyMigrations(this IEndpointRouteBuilder app, ILogger logger)
+        {
+            var db = app.ServiceProvider.GetRequiredService<IbCraftDbContext>();
+            var pendingMigrations = db.Database.GetPendingMigrations();
+            if (pendingMigrations.Any())
+            {
+                db.Database.Migrate();
+                logger.LogInformation("Migrations applied successfully");
+            }
+            else
+            {
+                logger.LogInformation("No pending migrations found.");
+            }
         }
 
         public static void AddApiAuthentication(this IServiceCollection services, IConfiguration configuration)
