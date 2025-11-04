@@ -20,7 +20,7 @@ services:
     depends_on:
       - db_ibcraft
     ports:
-      - 5185:5185
+      - 8080:8080
     restart: unless-stopped
 
 volumes:

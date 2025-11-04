@@ -20,17 +20,26 @@ namespace ibcraftservice.Extensions
 
         public static void ApplyMigrations(this IEndpointRouteBuilder app, ILogger logger)
         {
-            var db = app.ServiceProvider.GetRequiredService<IbCraftDbContext>();
-            var pendingMigrations = db.Database.GetPendingMigrations();
-            if (pendingMigrations.Any())
+            try
             {
-                db.Database.Migrate();
-                logger.LogInformation("Migrations applied successfully");
+                var db = app.ServiceProvider.GetRequiredService<IbCraftDbContext>();
+                var pendingMigrations = db.Database.GetPendingMigrations();
+                if (pendingMigrations.Any())
+                {
+                    db.Database.Migrate();
+                    logger.LogInformation("Migrations applied successfully");
+                }
+                else
+                {
+                    logger.LogInformation("No pending migrations found.");
+                }
             }
-            else
+            catch (InvalidOperationException)
             {
-                logger.LogInformation("No pending migrations found.");
+
+                logger.LogWarning("Migrations falied!");
             }
+           
         }
 
         public static void AddApiAuthentication(this IServiceCollection services, IConfiguration configuration)
