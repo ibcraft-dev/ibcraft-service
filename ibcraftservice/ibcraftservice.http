@@ -1,6 +1,0 @@
-@ibcraftservice_HostAddress = http://localhost:5185
-
-GET {{ibcraftservice_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

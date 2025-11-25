@@ -71,8 +71,14 @@ namespace Ibcraft.Application.Service
                 email,
                 hashedPassword);
 
-            var confirmationLink = $"{_clientAddress}/auth/confirm-email?email={user.Email}&token={user.EmailConfirmedToken}";
-            await _emailProvider.SendEmailAsync(user.Email, "Подтверждение email", $"Перейдите по ссылке: {confirmationLink}");
+            try
+            {
+                var confirmationLink = $"{_clientAddress}/auth/confirm-email?email={user.Email}&token={user.EmailConfirmedToken}";
+                await _emailProvider.SendEmailAsync(user.Email, "Подтверждение email", $"Перейдите по ссылке: {confirmationLink}");
+            }
+            catch (Exception ex) { 
+                Console.WriteLine("The email was not sent");
+            }
 
             await _userRepository.Add(user);
         }

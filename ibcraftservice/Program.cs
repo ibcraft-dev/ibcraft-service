@@ -21,7 +21,6 @@ if (!Directory.Exists(staticPath))
 }
 
 
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -77,7 +76,6 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/static"
 });
 
-log.LogDebug("Hello world");
 
 app.UseHttpsRedirection();
 
