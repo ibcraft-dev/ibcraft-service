@@ -37,7 +37,7 @@ namespace ibcraftservice.Extensions
             catch (InvalidOperationException)
             {
 
-                logger.LogWarning("Migrations falied!");
+                logger.LogCritical("Migrations falied!");
             }
            
         }
