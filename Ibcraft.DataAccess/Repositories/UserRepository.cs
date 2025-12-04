@@ -18,7 +18,7 @@ namespace Ibcraft.DataAccess.Repositories
             _mapper = mapper;
         }
 
-        public async Task Add(UserModule user)
+        public async Task<bool> Add(UserModule user)
         {
             
             var userEntity = new UserEntity
@@ -34,6 +34,7 @@ namespace Ibcraft.DataAccess.Repositories
 
             await _dbContext.Users.AddAsync(userEntity);
             await _dbContext.SaveChangesAsync();
+            return true;
         }
 
         public async Task<bool> ConfirmEmailAsync(string email, string token)

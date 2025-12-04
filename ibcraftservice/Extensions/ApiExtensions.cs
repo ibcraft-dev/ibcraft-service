@@ -1,6 +1,7 @@
 ﻿using Ibcraft.DataAccess;
 using Ibcraft.Infrastructure;
 using ibcraftservice.Endpoints;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -13,8 +14,8 @@ namespace ibcraftservice.Extensions
 
         public static void AddMappedEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapUsersEndpoints();
-            app.MapQuestionnaireEndpoints();
+            app.MapGroup("api").MapUsersEndpoints();
+            app.MapGroup("api").MapQuestionnaireEndpoints();
             
         }
 
@@ -48,7 +49,33 @@ namespace ibcraftservice.Extensions
 
             var jwtOptions = configuration.GetSection(nameof(AuthOption)).Get<AuthOption>();
 
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            services.AddAuthentication(opt =>
+            {
+                opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                opt.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+                .AddCookie()
+                .AddGoogle(options =>
+                {
+                    var clientId = configuration["Authentication:Google:ClientId"];
+
+                    if (clientId == null)
+                    {
+                        throw new ArgumentNullException(nameof(clientId));
+                    }
+
+                    var clientSecret = configuration["Authentication:Google:ClientSecret"];
+
+                    if (clientSecret == null)
+                    {
+                        throw new ArgumentNullException(nameof(clientSecret));
+                    }
+                    options.ClientId = clientId;
+                    options.ClientSecret = clientSecret;
+                    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+
+                })
                 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
                 {
                     options.RequireHttpsMetadata = true;
@@ -89,6 +116,8 @@ namespace ibcraftservice.Extensions
 
                     };
                 });
+            
+
 
             services.AddAuthorization();
         }

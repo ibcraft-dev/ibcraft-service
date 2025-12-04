@@ -1,4 +1,5 @@
 ﻿
+using System.Security.Claims;
 using Ibcraft.Application.Interfaces.Auth;
 using Ibcraft.Application.Interfaces.Repositories;
 using Ibcraft.Core.Module;
@@ -59,9 +60,9 @@ namespace Ibcraft.Application.Service
         public async Task Register(string nikname, string email, string password)
         {
             if (string.IsNullOrEmpty(password) || password.Length < UserModule.DEFAULT_LENGTH_PASSWORD) throw new ArgumentException("The password is too short!");
-            var checkMail = await _userRepository.GetByEmail(email);
+            var userExists = await _userRepository.GetByEmail(email);
 
-            if (checkMail != null) throw new ArgumentException("this email already exists");
+            if (userExists != null) throw new ArgumentException("this email already exists");
 
             var hashedPassword = _passwordHasher.Generate(password);
 
@@ -71,16 +72,21 @@ namespace Ibcraft.Application.Service
                 email,
                 hashedPassword);
 
-            try
-            {
-                var confirmationLink = $"{_clientAddress}/auth/confirm-email?email={user.Email}&token={user.EmailConfirmedToken}";
-                await _emailProvider.SendEmailAsync(user.Email, "Подтверждение email", $"Перейдите по ссылке: {confirmationLink}");
-            }
-            catch (Exception ex) { 
-                Console.WriteLine("The email was not sent");
-            }
+            // try
+            // {
+            //     var confirmationLink = $"{_clientAddress}/auth/confirm-email?email={user.Email}&token={user.EmailConfirmedToken}";
+            //     await _emailProvider.SendEmailAsync(user.Email, "Подтверждение email", $"Перейдите по ссылке: {confirmationLink}");
+            // }
+            // catch (Exception ex) { 
+            //     Console.WriteLine("The email was not sent");
+            // }
 
-            await _userRepository.Add(user);
+            var result = await _userRepository.Add(user);
+
+            if (!result)
+            {
+                throw new ArgumentException("RegistrationFailed");
+            }
         }
 
         public async Task<(string, string)> Login(string email, string password)
@@ -91,12 +97,6 @@ namespace Ibcraft.Application.Service
             if (user == null)
             {
                 errorMessage = "Failed to login!";
-                return (string.Empty, errorMessage);
-            }
-
-            if (!user.IsEmailConfirmed)
-            {
-                errorMessage = "Email not confim!";
                 return (string.Empty, errorMessage);
             }
 
@@ -153,6 +153,13 @@ namespace Ibcraft.Application.Service
             var IdUser = _authProvider.GetIdFromToken(token);
             await _userRepository.DeleteUser(IdUser);
         }
+
+        public async Task LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
+        {
+            
+        }
+
+
     }
 
 }

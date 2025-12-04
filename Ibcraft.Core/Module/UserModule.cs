@@ -52,10 +52,10 @@ namespace Ibcraft.Core.Module
 
             if (string.IsNullOrEmpty(email)) throw new ArgumentException("Email cannot be null!");
 
-            if (!IsValidEmail(email))
-            {
-                throw new ArgumentException("Email invalid!");
-            }
+            // if (!IsValidEmail(email))
+            // {
+            //     throw new ArgumentException("Email invalid!");
+            // }
             
             var user = new UserModule(id, nikname, email, password, string.Empty, false, Guid.NewGuid().ToString(), string.Empty, DateTime.Now);
             return user;
