@@ -14,9 +14,8 @@ namespace ibcraftservice.Extensions
 
         public static void AddMappedEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapGroup("api").MapUsersEndpoints();
+            app.MapGroup("api").MapAuthUserEndpoints();
             app.MapGroup("api").MapQuestionnaireEndpoints();
-            
         }
 
         public static void ApplyMigrations(this IEndpointRouteBuilder app, ILogger logger)

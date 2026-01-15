@@ -1,4 +1,4 @@
-using Ibcraft.Application.Interfaces.Auth;
+using Ibcraft.Application.Abstracts.Auth;
 using Ibcraft.Application.Interfaces.Repositories;
 using Ibcraft.Application.Service;
 using Ibcraft.DataAccess;
@@ -32,13 +32,11 @@ builder.Services.AddDbContext<IbCraftDbContext>(options =>
 });
 
 builder.Services.AddScoped<IAuthProvider, AuthProvider>();
-builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
-builder.Services.AddScoped<IEmailProvider,  EmailProvider>();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IQuestionnaireRepository, QuestionnaireRepository>();
 
-builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<QuestionnaireService>();
 
 builder.Services.AddAutoMapper(typeof(DatabaseMappings).Assembly);

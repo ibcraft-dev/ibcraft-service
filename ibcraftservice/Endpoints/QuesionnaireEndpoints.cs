@@ -11,7 +11,7 @@ namespace ibcraftservice.Endpoints
         {
             var endpoints = builder.MapGroup("quesionnaire").RequireAuthorization();
 
-            endpoints.MapPost("quest-post", AddQuesionnaire);
+            // endpoints.MapPost("quest-post", AddQuesionnaire);
             endpoints.MapGet("quest-getall", GetAll);
             endpoints.MapGet("{id:guid}/status", Status);
             endpoints.MapGet("{id:guid}/view", GetView);
@@ -92,35 +92,35 @@ namespace ibcraftservice.Endpoints
             return Results.Ok(response);
         }
 
-        private static async Task<IResult> AddQuesionnaire([FromBody] QuesionnaireRequest request, QuestionnaireService questionnaireService ,HttpContext context)
-        {
-            var token = context.Request.Cookies["dragonkey"];
+        // private static async Task<IResult> AddQuesionnaire([FromBody] QuesionnaireRequest request, QuestionnaireService questionnaireService ,HttpContext context)
+        // {
+        //     var token = context.Request.Cookies["dragonkey"];
 
-            if (string.IsNullOrEmpty(token))
-            {
-                return Results.Unauthorized();
-            }
+        //     if (string.IsNullOrEmpty(token))
+        //     {
+        //         return Results.Unauthorized();
+        //     }
 
-            try {
+        //     try {
 
-            await questionnaireService.AddQuestionnaire(
-                request.Age,
-                request.playingTime,
-                request.AcceptRule,
-                request.PlayingServer,
-                request.LicenseMinecraft,
-                request.BuildingLevel,
-                request.AdequacyLevel,
-                request.Discription,
-                token
-                );
-            } catch (Exception ex) {
-                return Results.BadRequest(ex.Message);
-            }
+        //     await questionnaireService.AddQuestionnaire(
+        //         request.Age,
+        //         request.playingTime,
+        //         request.AcceptRule,
+        //         request.PlayingServer,
+        //         request.LicenseMinecraft,
+        //         request.BuildingLevel,
+        //         request.AdequacyLevel,
+        //         request.Discription,
+        //         token
+        //         );
+        //     } catch (Exception ex) {
+        //         return Results.BadRequest(ex.Message);
+        //     }
 
 
-            return Results.Ok();
-        }
+        //     return Results.Ok();
+        // }
 
     }
 }

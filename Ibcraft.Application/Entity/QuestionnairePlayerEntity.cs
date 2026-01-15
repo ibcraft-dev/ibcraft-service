@@ -1,6 +1,6 @@
 ﻿
 
-namespace Ibcraft.DataAccess.Entity
+namespace Ibcraft.Application.Entity
 {
     public class QuestionnairePlayerEntity
     {

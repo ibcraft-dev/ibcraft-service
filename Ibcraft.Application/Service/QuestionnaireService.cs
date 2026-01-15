@@ -1,9 +1,8 @@
 ﻿
 
-using Ibcraft.Application.Interfaces.Auth;
+using Ibcraft.Application.Abstracts.Auth;
 using Ibcraft.Application.Interfaces.Repositories;
 using Ibcraft.Core.Module;
-using System.Security.Authentication;
 
 namespace Ibcraft.Application.Service
 {
@@ -18,41 +17,41 @@ namespace Ibcraft.Application.Service
             _userRepository = userRepository;
             _provider = provider;
         }
+        // Переписать метод добавления анкеты с учетом аутентификации
+        // public async Task AddQuestionnaire(int Age, string PlayingTime, bool AcceptRule, bool Playing, bool License, int Building, int Adequacy, string Discription, string token)
+        // {
+        //     var userId = _provider.GetIdFromToken(token);
 
-        public async Task AddQuestionnaire(int Age, string PlayingTime, bool AcceptRule, bool Playing, bool License, int Building, int Adequacy, string Discription, string token)
-        {
-            var userId = _provider.GetIdFromToken(token);
+        //     if(userId != Guid.Empty)
+        //     {
+        //         var user = await _userRepository.GetById(userId);
 
-            if(userId != Guid.Empty)
-            {
-                var user = await _userRepository.GetById(userId);
+        //         var quest =  await _questionnaireRepository.GetOneQuestionnaire(user.Id);
 
-                var quest =  await _questionnaireRepository.GetOneQuestionnaire(user.Id);
+        //         if(quest != null)
+        //         {
+        //             throw new Exception("Вы уже подали заявку!");
+        //         }
 
-                if(quest != null)
-                {
-                    throw new Exception("Вы уже подали заявку!");
-                }
+        //         var model = QuestionnairePlayerModule.Create(
+        //                 Guid.NewGuid(),
+        //                 user.Id,
+        //                 Age,
+        //                 PlayingTime,
+        //                 AcceptRule,
+        //                 Playing,
+        //                 License,
+        //                 Building,
+        //                 Adequacy,
+        //                 Discription
+        //             );
+        //         await _questionnaireRepository.Add(model);
+        //         return;
+        //     }
 
-                var model = QuestionnairePlayerModule.Create(
-                        Guid.NewGuid(),
-                        user.Id,
-                        Age,
-                        PlayingTime,
-                        AcceptRule,
-                        Playing,
-                        License,
-                        Building,
-                        Adequacy,
-                        Discription
-                    );
-                await _questionnaireRepository.Add(model);
-                return;
-            }
-
-            throw new AuthenticationException();
+        //     throw new AuthenticationException();
             
-        }
+        // }
 
         public async Task<QuestionnairePlayerModule?> GetQuestionnaire(Guid id) {
             var data = await _questionnaireRepository.GetOneQuestionnaire(id);

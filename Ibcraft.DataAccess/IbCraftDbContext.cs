@@ -1,4 +1,4 @@
-﻿using Ibcraft.DataAccess.Entity;
+﻿using Ibcraft.Application.Entity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ibcraft.DataAccess

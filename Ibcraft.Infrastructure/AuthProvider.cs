@@ -1,107 +1,86 @@
 ﻿
-using Ibcraft.Application.Interfaces.Auth;
+using Ibcraft.Application.Entity;
+using Ibcraft.Application.Abstracts.Auth;
 using Ibcraft.Core.Module;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Ibcraft.Infrastructure
 {
-    public class AuthProvider(IOptions<AuthOption> options) : IAuthProvider
+    public class AuthProvider : IAuthProvider
     {
-        private readonly AuthOption _options = options.Value;
+        private readonly AuthOption _authOption;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        private SigningCredentials GetSigningCredentials()
+        public AuthProvider(IOptions<AuthOption> authOption, IHttpContextAccessor httpContextAccessor)
         {
-            var secret = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey));
-            return new SigningCredentials(secret, SecurityAlgorithms.HmacSha256);
+            _authOption = authOption.Value;
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        public List<Claim> GetClaimsForUser(UserModule userModule)
+        public (string jwtToken, DateTime expiresAtUtc) GenerateToken(UserEntity user)
         {
-            List<Claim> list = [
-                    new Claim(ClaimTypes.Email, userModule.Email),
-                    new Claim("UserId", userModule.Id.ToString())
-                ];
+            var signingKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(_authOption.SecretKey));
 
-            return list;
-        }
+            var credentials = new SigningCredentials(
+                signingKey,
+                SecurityAlgorithms.HmacSha256);
 
-        public string GenerateToken(UserModule userModule)
-        {
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
+                new Claim(ClaimTypes.NameIdentifier, user.Nikname?.ToString() ?? "")
+            };
+
+            var expires = DateTime.UtcNow.AddMinutes(_authOption.ExpiresHours);
+
             var token = new JwtSecurityToken(
-                    issuer: _options.Issuer,
-                    claims: GetClaimsForUser(userModule),
-                    expires: DateTime.Now.AddHours(_options.ExpiresHours),
-                    signingCredentials: GetSigningCredentials()
-                );
-            return new JwtSecurityTokenHandler().WriteToken(token);
+                issuer: _authOption.Issuer,
+                audience: _authOption.Audience,
+                claims: claims,
+                expires: expires,
+                signingCredentials: credentials);
+
+            var jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return (jwtToken, expires);
         }
 
-        public string GetEmailFromToken(string token)
+        public string GenerateRefreshToken()
         {
-            var handler = new JwtSecurityTokenHandler();
-            if (handler.CanReadToken(token))
-            {
-                var result = handler.ReadJwtToken(token);
-                return result.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            }
-            return "";
+            var randomNumber = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
         }
 
-        public Guid GetIdFromToken(string token)
+        public void WriteAuthTokenAsHttpOnlyCookie(string cookieName, string token, DateTime expiration)
         {
-            string id = string.Empty;
-            var handler = new JwtSecurityTokenHandler();
-            if (handler.CanReadToken(token))
+            if (_httpContextAccessor.HttpContext != null)
             {
-                var result = handler.ReadJwtToken(token);
-                id = result.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
-            }
-
-            if (Guid.TryParse(id, out Guid guid))
+                _httpContextAccessor.HttpContext.Response.Cookies.Append(cookieName,
+                    token, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Expires = expiration,
+                        IsEssential = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict
+                    });
+            } else
             {
-                return guid;
+                throw new InvalidOperationException("HTTP context is not available.");
             }
-            else
-            {
-                return Guid.Empty;
-            }
-            
         }
 
-        public (bool, string) ValidationToken(string token)
-        {
-            string messageError = string.Empty;
-            var handler = new JwtSecurityTokenHandler();
-            if (!handler.CanReadToken(token))
-            {
-                messageError = "Invalid token";
-                return (false, messageError);
-            }
-
-            var jwtTokenData = handler.ReadJwtToken(token);
-            var expClaim = jwtTokenData.Claims.FirstOrDefault(c => c.Type == "exp")?.Value;
-            if (expClaim == null)
-            {
-                messageError = "Expiration claim is missing";
-                return (false, messageError);
-            }
-
-            var expData = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expClaim)).UtcDateTime;
-            var now = DateTime.UtcNow;
-
-            if (expData < now)
-            {
-                messageError = "Token expired";
-                return (false, messageError);
-            }
-
-            return (true, "Token is valid");
-
-        }
 
     }
 }
