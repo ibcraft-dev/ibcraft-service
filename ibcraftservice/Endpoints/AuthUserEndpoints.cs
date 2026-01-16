@@ -1,8 +1,8 @@
 
 
 using Ibcraft.Application.Abstracts.Auth;
+using Ibcraft.Application.Entity;
 using Ibcraft.Application.Service;
-using Ibcraft.Core.Module;
 using Ibcraft.Core.Requests;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -27,7 +27,11 @@ public static class AuthUserEndpoints
         return builder;
     }
 
-    private static async Task<IResult> authAccountGoogle([FromQuery] string returnUrl, LinkGenerator linkGenerator, SignInManager<UserModule> signIn, HttpContext httpContext)
+    private static async Task<IResult> authAccountGoogle(
+    [FromQuery] string returnUrl,
+    [FromServices] LinkGenerator linkGenerator,
+    [FromServices] SignInManager<UserEntity> signIn, 
+    HttpContext httpContext)
     {
         var properties = signIn.ConfigureExternalAuthenticationProperties("Google",
          linkGenerator.GetPathByName(httpContext, "GoogleLoginCallback" + $"?returnUrl={returnUrl}"));
@@ -35,7 +39,10 @@ public static class AuthUserEndpoints
         return Results.Challenge(properties, ["Google"]);
     }
 
-    private static async Task<IResult> callbackGoogle([FromQuery] string returnUrl, HttpContext context, AccountService accountService)
+    private static async Task<IResult> callbackGoogle( 
+        [FromQuery] string returnUrl,
+        HttpContext context,
+        [FromServices] AccountService accountService)
     {
        var result = await context.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
 
@@ -63,13 +70,13 @@ public static class AuthUserEndpoints
         }
 
 
-        private static async Task<IResult> Login(LoginRequest request, IAccountService accountService)
+        private static async Task<IResult> Login([FromBody] LoginRequest request, IAccountService accountService)
         {
             await accountService.LoginAsync(request);
             return Results.Ok();
         }
 
-        private static async Task<IResult> Register(RegisterRequest request, IAccountService accountService)
+        private static async Task<IResult> Register([FromBody] RegisterRequest request, IAccountService accountService)
         {
             await accountService.RegisterAsync(request);
             return Results.Ok();

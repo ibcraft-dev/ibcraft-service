@@ -9,12 +9,11 @@ using Ibcraft.Core.Exceptions;
 
 namespace Ibcraft.Application.Service
 {
-    public class AccountService
+    public class AccountService : IAccountService
     {
         private readonly IUserRepository _userRepository;
         private readonly UserManager<UserEntity> _userManager;
         private readonly IAuthProvider _authProvider;
-
 
 
         public AccountService(IUserRepository userRepository, IAuthProvider authProvider, UserManager<UserEntity> userManager)

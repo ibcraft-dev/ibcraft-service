@@ -1,4 +1,5 @@
 using Ibcraft.Application.Abstracts.Auth;
+using Ibcraft.Application.Entity;
 using Ibcraft.Application.Interfaces.Repositories;
 using Ibcraft.Application.Service;
 using Ibcraft.DataAccess;
@@ -6,6 +7,7 @@ using Ibcraft.DataAccess.Repositories;
 using Ibcraft.Infrastructure;
 using ibcraftservice.Extensions;
 using Microsoft.AspNetCore.CookiePolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 
@@ -26,6 +28,17 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddApiAuthentication(builder.Configuration);
 
+builder.Services.AddIdentity<UserEntity, IdentityRole<Guid>>(opt =>
+{
+    opt.Password.RequireDigit = true;
+    opt.Password.RequireLowercase = true;
+    opt.Password.RequireNonAlphanumeric = true;
+    opt.Password.RequireUppercase = true;
+    opt.Password.RequiredLength = 8;
+    opt.User.RequireUniqueEmail = true;
+}).AddEntityFrameworkStores<IbCraftDbContext>();
+
+
 builder.Services.AddDbContext<IbCraftDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString(nameof(IbCraftDbContext)));
@@ -36,7 +49,7 @@ builder.Services.AddScoped<IAuthProvider, AuthProvider>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IQuestionnaireRepository, QuestionnaireRepository>();
 
-builder.Services.AddScoped<AccountService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<QuestionnaireService>();
 
 builder.Services.AddHttpContextAccessor();
@@ -96,6 +109,6 @@ app.MapControllers();
 app.AddMappedEndpoints();
 
 if (args.Contains("--migrate"))
-    app.ApplyMigrations(log);
+    app.ApplyMigrations();
 
 app.Run();

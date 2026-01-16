@@ -9,17 +9,6 @@ namespace Ibcraft.DataAccess
     {
         public DatabaseMappings()
         {
-            CreateMap<UserEntity, UserModule>()
-                .ForCtorParam("id", opt => opt.MapFrom(src => src.Id))
-                .ForCtorParam("nikname", opt => opt.MapFrom(src => src.Nikname))
-                .ForCtorParam("email", opt => opt.MapFrom(src => src.Email))
-                .ForCtorParam("password", opt => opt.MapFrom(src => src.PasswordHash))
-                .ForCtorParam("userAvatar", opt => opt.MapFrom(src => src.UserAvatar))
-                .ForCtorParam("isEmailConfirmed", opt => opt.MapFrom(src => src.IsEmailConfirmed))
-                .ForCtorParam("tokenEmail", opt => opt.MapFrom(src => src.EmailConfirmedToken))
-                .ForCtorParam("tokenReset", opt => opt.MapFrom(src => src.PasswordResetToken))
-                .ForCtorParam("created_at", opt => opt.MapFrom(src => src.Created_at));
-
             CreateMap<QuestionnairePlayerEntity, QuestionnairePlayerModule>()
                 .ForCtorParam("id", opt => opt.MapFrom(src => src.Id))
                 .ForCtorParam("userid", opt => opt.MapFrom(src => src.UserId))
