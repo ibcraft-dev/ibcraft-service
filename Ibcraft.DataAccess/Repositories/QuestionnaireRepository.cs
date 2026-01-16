@@ -2,7 +2,7 @@
 using AutoMapper;
 using Ibcraft.Application.Interfaces.Repositories;
 using Ibcraft.Core.Module;
-using Ibcraft.DataAccess.Entity;
+using Ibcraft.Application.Entity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ibcraft.DataAccess.Repositories

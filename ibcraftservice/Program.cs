@@ -39,6 +39,8 @@ builder.Services.AddScoped<IQuestionnaireRepository, QuestionnaireRepository>();
 builder.Services.AddScoped<AccountService>();
 builder.Services.AddScoped<QuestionnaireService>();
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddAutoMapper(typeof(DatabaseMappings).Assembly);
 
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(nameof(EmailOptions)));
@@ -92,6 +94,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.AddMappedEndpoints();
-app.ApplyMigrations(log);
+
+if (args.Contains("--migrate"))
+    app.ApplyMigrations(log);
 
 app.Run();

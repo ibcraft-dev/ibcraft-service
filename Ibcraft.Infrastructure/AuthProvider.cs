@@ -1,7 +1,6 @@
 ﻿
 using Ibcraft.Application.Entity;
 using Ibcraft.Application.Abstracts.Auth;
-using Ibcraft.Core.Module;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
