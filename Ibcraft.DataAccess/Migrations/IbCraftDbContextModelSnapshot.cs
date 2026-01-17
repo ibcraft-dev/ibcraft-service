@@ -40,7 +40,7 @@ namespace Ibcraft.DataAccess.Migrations
                     b.Property<int>("BuildingLevel")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Discription")
+                    b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -50,16 +50,16 @@ namespace Ibcraft.DataAccess.Migrations
                     b.Property<bool>("PlayingServer")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("PlayingTime")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
-
-                    b.Property<string>("playingTime")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.HasKey("Id");
 

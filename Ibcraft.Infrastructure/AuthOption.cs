@@ -4,6 +4,7 @@ namespace Ibcraft.Infrastructure
 {
     public class AuthOption
     {
+        public const string JwtOptionsKey = "AuthOption";
         public string Issuer { get; set; } = string.Empty;
         public string Audience {  get; set; } = string.Empty;
         public string SecretKey {  get; set; } = string.Empty;

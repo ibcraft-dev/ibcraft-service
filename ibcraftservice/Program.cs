@@ -1,3 +1,4 @@
+
 using Ibcraft.Application.Abstracts;
 using Ibcraft.Application.Abstracts.Auth;
 using Ibcraft.Application.Entity;
@@ -27,7 +28,7 @@ if (!Directory.Exists(staticPath))
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddApiAuthentication(builder.Configuration);
+
 
 builder.Services.AddIdentity<UserEntity, IdentityRole<Guid>>(opt =>
 {
@@ -44,6 +45,7 @@ builder.Services.AddDbContext<IbCraftDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString(nameof(IbCraftDbContext)));
 });
+builder.Services.AddApiAuthentication(builder.Configuration);
 
 builder.Services.AddScoped<IAuthProvider, AuthProvider>();
 
@@ -55,22 +57,6 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IQuestionnaireService, QuestionnaireService>();
 
 builder.Services.AddHttpContextAccessor();
-
-builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(nameof(EmailOptions)));
-
-builder.Services.AddCors(opti =>
-{
-    var client = builder.Configuration.GetSection("Clientaddress");
-    if (!string.IsNullOrEmpty(client.Value))
-    {
-        opti.AddPolicy("AllowSpecificOrigin", builder => {
-            builder.WithOrigins(client.Value)
-                        .AllowAnyMethod()
-                        .AllowAnyHeader()
-                        .AllowCredentials();
-        });
-    } 
-});
 
 // App
 var app = builder.Build();
@@ -101,16 +87,14 @@ app.UseCookiePolicy(new CookiePolicyOptions
 });
 
 app.UseCors("AllowSpecificOrigin");
+app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-
 
 app.MapControllers();
 app.AddMappedEndpoints();
 
 if (args.Contains("--migrate"))
     app.ApplyMigrations();
-
-app.MapGet("/api/movies", () => Results.Ok(new List<string> { "Matrix" })).RequireAuthorization();
 
 app.Run();

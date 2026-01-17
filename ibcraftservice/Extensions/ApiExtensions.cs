@@ -32,58 +32,36 @@ namespace ibcraftservice.Extensions
             var jwtOptions = configuration.GetSection(nameof(AuthOption)).Get<AuthOption>();
 
             services.AddAuthentication(opt =>
-            {
+                {
                 opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 opt.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-                .AddCookie()
-                .AddGoogle(options =>
+            }).AddJwtBearer(options =>
+            {
+                var jwtOptions = configuration.GetSection(AuthOption.JwtOptionsKey)
+                    .Get<AuthOption>() ?? throw new ArgumentException(nameof(AuthOption));
+
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    var clientId = configuration["Authentication:Google:ClientId"];
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtOptions.Issuer,
+                    ValidAudience = jwtOptions.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey))
+                };
 
-                    if (clientId == null)
-                    {
-                        throw new ArgumentNullException(nameof(clientId));
-                    }
-
-                    var clientSecret = configuration["Authentication:Google:ClientSecret"];
-
-                    if (clientSecret == null)
-                    {
-                        throw new ArgumentNullException(nameof(clientSecret));
-                    }
-                    options.ClientId = clientId;
-                    options.ClientSecret = clientSecret;
-                    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-
-                })
-                .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+                options.Events = new JwtBearerEvents
                 {
-                    options.RequireHttpsMetadata = true;
-                    options.SaveToken = true;
-                    options.TokenValidationParameters = new()
+                    OnMessageReceived = context =>
                     {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = jwtOptions!.Issuer,
-                        ValidAudience = jwtOptions.Audience,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions!.SecretKey))
-                    };
+                        context.Token = context.Request.Cookies["ACCESS_TOKEN"];
+                        return Task.CompletedTask;
+                    }
+                };
+            });
 
-                    options.Events = new JwtBearerEvents
-                    {
-                        OnMessageReceived = context =>
-                        {
-                            context.Token = context.Request.Cookies["ACCESS_TOKEN"];
-
-                            return Task.CompletedTask;
-                        }
-
-                    };
-                });
             
             services.AddAuthorization();
         }

@@ -31,7 +31,25 @@ namespace ibcraftservice.Endpoints
 
         private static async Task<IResult> GetView([FromRoute] Guid id, IQuestionnaireService service)
         {
-            return Results.Ok();
+            var data = await service.GetUserQuestionnaire(id);
+            if (data == null) {
+                return Results.Ok("Unfiled");
+            }
+
+            var response = new QuesionnaireResponse(
+                data.Id,
+                data.UserId,
+                data.Age,
+                data.PlayingTime,
+                data.AcceptRule,
+                data.PlayingServer,
+                data.LicenseMinecraft,
+                data.BuildingLevel,
+                data.AdequacyLevel,
+                data.Description,
+                data.Status
+            );
+            return Results.Ok(response);
         }
 
         private static async Task<IResult> Status([FromRoute] Guid? id, IQuestionnaireService service)
@@ -41,7 +59,7 @@ namespace ibcraftservice.Endpoints
                 return Results.Ok("Unfiled");
             }
 
-            return Results.Ok();
+            return Results.Ok(data.Status);
         }
 
         private static async Task<IResult> Delete([FromRoute] Guid id, IQuestionnaireService service)

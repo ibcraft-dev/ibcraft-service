@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Ibcraft.DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class initmig : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -169,13 +169,13 @@ namespace Ibcraft.DataAccess.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Age = table.Column<int>(type: "integer", nullable: false),
-                    playingTime = table.Column<string>(type: "text", nullable: false),
+                    PlayingTime = table.Column<string>(type: "text", nullable: false),
                     AcceptRule = table.Column<bool>(type: "boolean", nullable: false),
                     PlayingServer = table.Column<bool>(type: "boolean", nullable: false),
                     LicenseMinecraft = table.Column<bool>(type: "boolean", nullable: false),
                     BuildingLevel = table.Column<int>(type: "integer", nullable: false),
                     AdequacyLevel = table.Column<int>(type: "integer", nullable: false),
-                    Discription = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
                     Status = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
