@@ -1,16 +1,19 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ibcraftservice.Contracts.Quesionnaire
+namespace ibcraftservice.Core.Quesionnaire
 {
-    public record QuesionnaireRequest(
+    public record QuesionnaireResponse(
+            [Required] Guid Id,
+            [Required] Guid UserId,
             [Required] int Age,
-            [Required] string playingTime,
+            [Required] string PlayingTime,
             [Required] bool AcceptRule,
             [Required] bool PlayingServer,
             [Required] bool LicenseMinecraft,
             [Required] int BuildingLevel,
             [Required] int AdequacyLevel,
-            [Required] string Discription
+            [Required] string Discription,
+            [Required] string Status
         );
 
 }

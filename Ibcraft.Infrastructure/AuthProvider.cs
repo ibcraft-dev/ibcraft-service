@@ -33,10 +33,10 @@ namespace Ibcraft.Infrastructure
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Nikname ?? ""),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
-                new Claim(ClaimTypes.NameIdentifier, user.Nikname?.ToString() ?? "")
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
             };
 
             var expires = DateTime.UtcNow.AddMinutes(_authOption.ExpiresHours);

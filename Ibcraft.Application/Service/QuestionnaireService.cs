@@ -1,64 +1,63 @@
 ﻿
 
-using Ibcraft.Application.Abstracts.Auth;
+using Ibcraft.Application.Abstracts;
+using Ibcraft.Application.Entity;
 using Ibcraft.Application.Interfaces.Repositories;
-using Ibcraft.Core.Module;
+using Ibcraft.Core.Exceptions;
+using ibcraftservice.Core.Quesionnaire;
 
 namespace Ibcraft.Application.Service
 {
-    public class QuestionnaireService
+
+
+    public class QuestionnaireService : IQuestionnaireService
     {
         private readonly IQuestionnaireRepository _questionnaireRepository;
-        private readonly IUserRepository _userRepository;
-        private readonly IAuthProvider _provider;
 
-        public QuestionnaireService(IQuestionnaireRepository questionnaireRepository, IUserRepository userRepository, IAuthProvider provider) {
+        private readonly ICurrentUser _currentUser;
+
+
+        public QuestionnaireService(
+        IQuestionnaireRepository questionnaireRepository,
+        ICurrentUser currentUser
+        )
+        {
             _questionnaireRepository = questionnaireRepository;
-            _userRepository = userRepository;
-            _provider = provider;
+            _currentUser = currentUser;
         }
-        // Переписать метод добавления анкеты с учетом аутентификации
-        // public async Task AddQuestionnaire(int Age, string PlayingTime, bool AcceptRule, bool Playing, bool License, int Building, int Adequacy, string Discription, string token)
-        // {
-        //     var userId = _provider.GetIdFromToken(token);
+        public async Task AddQuestionnaire(QuesionnaireRequest request)
+        {
+            if (!_currentUser.isAuthenticated)
+                throw new UnauthorizedAccessException();
 
-        //     if(userId != Guid.Empty)
-        //     {
-        //         var user = await _userRepository.GetById(userId);
+            var quest = await _questionnaireRepository.GetOneUserQuestionnaire(_currentUser.UserId);
 
-        //         var quest =  await _questionnaireRepository.GetOneQuestionnaire(user.Id);
+            if (quest != null)
+                throw new QuestionnaireExistsExpression("The questionnaire exists!");
 
-        //         if(quest != null)
-        //         {
-        //             throw new Exception("Вы уже подали заявку!");
-        //         }
+            var questionnaire = QuestionnairePlayerEntityFactory.Create(
+                userid: _currentUser.UserId,
+                age: request.Age,
+                playingTime: request.PlayingTime,
+                acceptRule: request.AcceptRule,
+                playingServer: request.PlayingServer,
+                licenseMinecraft: request.LicenseMinecraft,
+                buildingLevel: request.BuildingLevel,
+                adequacyLevel: request.AdequacyLevel,
+                description: request.Description
+            );
 
-        //         var model = QuestionnairePlayerModule.Create(
-        //                 Guid.NewGuid(),
-        //                 user.Id,
-        //                 Age,
-        //                 PlayingTime,
-        //                 AcceptRule,
-        //                 Playing,
-        //                 License,
-        //                 Building,
-        //                 Adequacy,
-        //                 Discription
-        //             );
-        //         await _questionnaireRepository.Add(model);
-        //         return;
-        //     }
-
-        //     throw new AuthenticationException();
-            
-        // }
-
-        public async Task<QuestionnairePlayerModule?> GetQuestionnaire(Guid id) {
-            var data = await _questionnaireRepository.GetOneQuestionnaire(id);
-            return data ?? null;
+            await _questionnaireRepository.Add(questionnaire);
         }
 
-        public async Task<List<QuestionnairePlayerModule>> GetAllQuestionnaire()
+
+        public async Task<QuestionnairePlayerEntity> GetUserQuestionnaire(Guid? userId)
+        {
+            var data = await _questionnaireRepository.GetOneUserQuestionnaire(userId ?? _currentUser.UserId);
+            return data ?? null!;
+        }
+
+        public async Task<List<QuestionnairePlayerEntity>> GetAllQuestionnaire()
         {
             return await _questionnaireRepository.GetAll();
         }

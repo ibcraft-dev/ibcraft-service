@@ -1,4 +1,3 @@
-using System;
 
 namespace Ibcraft.Core.Exceptions;
 

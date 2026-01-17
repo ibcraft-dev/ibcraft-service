@@ -64,10 +64,12 @@ namespace ibcraftservice.Extensions
                     options.SaveToken = true;
                     options.TokenValidationParameters = new()
                     {
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwtOptions!.Issuer,
+                        ValidAudience = jwtOptions.Audience,
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions!.SecretKey))
                     };
 
@@ -75,32 +77,14 @@ namespace ibcraftservice.Extensions
                     {
                         OnMessageReceived = context =>
                         {
-                            context.Token = context.Request.Cookies["dragonkey"];
+                            context.Token = context.Request.Cookies["ACCESS_TOKEN"];
 
                             return Task.CompletedTask;
-                        },
-
-                        OnChallenge = context =>
-                        {
-                            context.HandleResponse();
-
-                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                            context.Response.ContentType = "application/json";
-
-                            var response = new
-                            {
-                                error = "Unauthorized",
-                                message = "Token is missing, invalid, or expired."
-                            };
-
-                            return context.Response.WriteAsJsonAsync(response);
                         }
 
                     };
                 });
             
-
-
             services.AddAuthorization();
         }
     }

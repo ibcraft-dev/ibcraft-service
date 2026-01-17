@@ -1,5 +1,4 @@
 ﻿
-using AutoMapper;
 using Ibcraft.Application.Interfaces.Repositories;
 using Ibcraft.Application.Entity;
 using Microsoft.EntityFrameworkCore;
@@ -10,11 +9,9 @@ namespace Ibcraft.DataAccess.Repositories
     public class UserRepository : IUserRepository
     {
         private readonly IbCraftDbContext _dbContext;
-        private readonly IMapper _mapper;
 
-        public UserRepository(IbCraftDbContext dbContext, IMapper mapper) { 
+        public UserRepository(IbCraftDbContext dbContext) { 
             _dbContext = dbContext;
-            _mapper = mapper;
         }
 
 
@@ -64,7 +61,6 @@ namespace Ibcraft.DataAccess.Repositories
             await _dbContext.SaveChangesAsync();
             return true;
         }
-
 
 
     }

@@ -1,10 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ibcraftservice.Contracts.Quesionnaire
+namespace ibcraftservice.Core.Quesionnaire
 {
-    public record QuesionnaireResponse(
-            [Required] Guid Id,
-            [Required] Guid UserId,
+    public record QuesionnaireRequest(
             [Required] int Age,
             [Required] string PlayingTime,
             [Required] bool AcceptRule,
@@ -12,8 +10,7 @@ namespace ibcraftservice.Contracts.Quesionnaire
             [Required] bool LicenseMinecraft,
             [Required] int BuildingLevel,
             [Required] int AdequacyLevel,
-            [Required] string Discription,
-            [Required] string Status
+            [Required] string Description
         );
 
 }

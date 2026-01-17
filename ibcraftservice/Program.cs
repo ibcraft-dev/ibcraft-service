@@ -1,3 +1,4 @@
+using Ibcraft.Application.Abstracts;
 using Ibcraft.Application.Abstracts.Auth;
 using Ibcraft.Application.Entity;
 using Ibcraft.Application.Interfaces.Repositories;
@@ -48,13 +49,12 @@ builder.Services.AddScoped<IAuthProvider, AuthProvider>();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IQuestionnaireRepository, QuestionnaireRepository>();
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 
 builder.Services.AddScoped<IAccountService, AccountService>();
-builder.Services.AddScoped<QuestionnaireService>();
+builder.Services.AddScoped<IQuestionnaireService, QuestionnaireService>();
 
 builder.Services.AddHttpContextAccessor();
-
-builder.Services.AddAutoMapper(typeof(DatabaseMappings).Assembly);
 
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(nameof(EmailOptions)));
 
@@ -110,5 +110,7 @@ app.AddMappedEndpoints();
 
 if (args.Contains("--migrate"))
     app.ApplyMigrations();
+
+app.MapGet("/api/movies", () => Results.Ok(new List<string> { "Matrix" })).RequireAuthorization();
 
 app.Run();
