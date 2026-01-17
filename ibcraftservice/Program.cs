@@ -1,4 +1,7 @@
-using Ibcraft.Application.Interfaces.Auth;
+
+using Ibcraft.Application.Abstracts;
+using Ibcraft.Application.Abstracts.Auth;
+using Ibcraft.Application.Entity;
 using Ibcraft.Application.Interfaces.Repositories;
 using Ibcraft.Application.Service;
 using Ibcraft.DataAccess;
@@ -6,6 +9,7 @@ using Ibcraft.DataAccess.Repositories;
 using Ibcraft.Infrastructure;
 using ibcraftservice.Extensions;
 using Microsoft.AspNetCore.CookiePolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 
@@ -24,40 +28,35 @@ if (!Directory.Exists(staticPath))
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddApiAuthentication(builder.Configuration);
+
+
+builder.Services.AddIdentity<UserEntity, IdentityRole<Guid>>(opt =>
+{
+    opt.Password.RequireDigit = true;
+    opt.Password.RequireLowercase = true;
+    opt.Password.RequireNonAlphanumeric = true;
+    opt.Password.RequireUppercase = true;
+    opt.Password.RequiredLength = 8;
+    opt.User.RequireUniqueEmail = true;
+}).AddEntityFrameworkStores<IbCraftDbContext>();
+
 
 builder.Services.AddDbContext<IbCraftDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString(nameof(IbCraftDbContext)));
 });
+builder.Services.AddApiAuthentication(builder.Configuration);
 
 builder.Services.AddScoped<IAuthProvider, AuthProvider>();
-builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
-builder.Services.AddScoped<IEmailProvider,  EmailProvider>();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IQuestionnaireRepository, QuestionnaireRepository>();
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 
-builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<QuestionnaireService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IQuestionnaireService, QuestionnaireService>();
 
-builder.Services.AddAutoMapper(typeof(DatabaseMappings).Assembly);
-
-builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(nameof(EmailOptions)));
-
-builder.Services.AddCors(opti =>
-{
-    var client = builder.Configuration.GetSection("Clientaddress");
-    if (!string.IsNullOrEmpty(client.Value))
-    {
-        opti.AddPolicy("AllowSpecificOrigin", builder => {
-            builder.WithOrigins(client.Value)
-                        .AllowAnyMethod()
-                        .AllowAnyHeader()
-                        .AllowCredentials();
-        });
-    } 
-});
+builder.Services.AddHttpContextAccessor();
 
 // App
 var app = builder.Build();
@@ -88,12 +87,14 @@ app.UseCookiePolicy(new CookiePolicyOptions
 });
 
 app.UseCors("AllowSpecificOrigin");
+app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-
 app.MapControllers();
 app.AddMappedEndpoints();
-app.ApplyMigrations(log);
+
+if (args.Contains("--migrate"))
+    app.ApplyMigrations();
 
 app.Run();

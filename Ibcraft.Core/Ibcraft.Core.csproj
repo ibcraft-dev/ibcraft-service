@@ -12,4 +12,9 @@
     <None Remove="Abstactions\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Exceptions\" />
+    <Folder Include="Requests\" />
+  </ItemGroup>
+
 </Project>

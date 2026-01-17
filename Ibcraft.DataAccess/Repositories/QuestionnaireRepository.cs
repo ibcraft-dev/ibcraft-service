@@ -1,8 +1,6 @@
 ﻿
-using AutoMapper;
 using Ibcraft.Application.Interfaces.Repositories;
-using Ibcraft.Core.Module;
-using Ibcraft.DataAccess.Entity;
+using Ibcraft.Application.Entity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ibcraft.DataAccess.Repositories
@@ -10,52 +8,32 @@ namespace Ibcraft.DataAccess.Repositories
     public class QuestionnaireRepository : IQuestionnaireRepository
     {
         private readonly IbCraftDbContext _dbContext;
-        private readonly IMapper _mapper;
 
-        public QuestionnaireRepository(IbCraftDbContext dbContext, IMapper mapper)
+
+        public QuestionnaireRepository(IbCraftDbContext dbContext)
         {
             _dbContext = dbContext;
-            _mapper = mapper;
         }
 
-
-        public async Task Add(QuestionnairePlayerModule playerEntity)
+        public async Task Add(QuestionnairePlayerEntity entity)
         {
-            var entity = new QuestionnairePlayerEntity
-            {
-                Id = playerEntity.Id,
-                UserId = playerEntity.UserId,
-                Age = playerEntity.Age,
-                playingTime = playerEntity.PlayingTime,
-                AcceptRule = playerEntity.AcceptRule,
-                PlayingServer = playerEntity.PlayingServer,
-                LicenseMinecraft = playerEntity.LicenseMinecraft,
-                BuildingLevel = playerEntity.BuildingLevel,
-                AdequacyLevel = playerEntity.AdequacyLevel,
-                Discription = playerEntity.Discription,
-                Status = playerEntity.Status,
-            };
 
             await _dbContext.Questions.AddAsync(entity);
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<List<QuestionnairePlayerModule>> GetAll()
+        public async Task<List<QuestionnairePlayerEntity>> GetAll()
         {
-            var entity = await _dbContext.Questions
+            return await _dbContext.Questions
                 .AsNoTracking().ToListAsync();
 
-            return _mapper.Map<List<QuestionnairePlayerModule>>(entity);
         }
 
-
-        public async Task<QuestionnairePlayerModule> GetOneQuestionnaire(Guid id)
+        public async Task<QuestionnairePlayerEntity> GetOneUserQuestionnaire(Guid userId)
         {
-            var entity = await _dbContext.Questions 
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == id) ?? null;
-
-            return _mapper.Map<QuestionnairePlayerModule>(entity);
+            return await _dbContext.Questions
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.UserId == userId) ?? null!;
         }
 
         public async Task<string> ApproveQuestionnaire(Guid id)

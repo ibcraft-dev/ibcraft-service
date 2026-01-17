@@ -1,9 +1,11 @@
-﻿using Ibcraft.DataAccess.Entity;
+﻿using Ibcraft.Application.Entity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ibcraft.DataAccess
 {
-    public class IbCraftDbContext : DbContext
+    public class IbCraftDbContext : IdentityDbContext<UserEntity, IdentityRole<Guid>, Guid>
     {
         public IbCraftDbContext(DbContextOptions<IbCraftDbContext> options)
             : base(options)

@@ -1,6 +1,6 @@
 ﻿
 
-using Ibcraft.DataAccess.Entity;
+using Ibcraft.Application.Entity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

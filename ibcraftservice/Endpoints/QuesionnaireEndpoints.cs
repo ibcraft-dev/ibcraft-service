@@ -1,6 +1,6 @@
 ﻿
-using Ibcraft.Application.Service;
-using ibcraftservice.Contracts.Quesionnaire;
+using Ibcraft.Application.Abstracts;
+using ibcraftservice.Core.Quesionnaire;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ibcraftservice.Endpoints
@@ -9,10 +9,10 @@ namespace ibcraftservice.Endpoints
     {
         public static IEndpointRouteBuilder MapQuestionnaireEndpoints(this IEndpointRouteBuilder builder)
         {
-            var endpoints = builder.MapGroup("quesionnaire").RequireAuthorization();
+            var endpoints = builder.MapGroup("/questionnaire/").RequireAuthorization();
 
-            endpoints.MapPost("quest-post", AddQuesionnaire);
-            endpoints.MapGet("quest-getall", GetAll);
+            endpoints.MapPost("create", AddQuesionnaire);
+            endpoints.MapGet("getall", GetAll);
             endpoints.MapGet("{id:guid}/status", Status);
             endpoints.MapGet("{id:guid}/view", GetView);
             endpoints.MapPut("{id:guid}/approved", ApprovedUpdate);
@@ -22,31 +22,39 @@ namespace ibcraftservice.Endpoints
             return builder;
         }
 
-        private static async Task<IResult> GetView([FromRoute] Guid id, QuestionnaireService service)
+        private static async Task<IResult> AddQuesionnaire([FromBody] QuesionnaireRequest request, IQuestionnaireService service, HttpContext context)
         {
-            var data = await service.GetQuestionnaire(id);
-            if (data == null)
-            {
-                return Results.BadRequest();
+        
+            await service.AddQuestionnaire(request);
+            return Results.Ok();
+        }
+
+        private static async Task<IResult> GetView([FromRoute] Guid id, IQuestionnaireService service)
+        {
+            var data = await service.GetUserQuestionnaire(id);
+            if (data == null) {
+                return Results.Ok("Unfiled");
             }
 
-            return Results.Ok(new QuesionnaireResponse(data.Id,
+            var response = new QuesionnaireResponse(
+                data.Id,
                 data.UserId,
-                data.Age, 
-                data.PlayingTime, 
-                data.AcceptRule, 
-                data.PlayingServer, 
+                data.Age,
+                data.PlayingTime,
+                data.AcceptRule,
+                data.PlayingServer,
                 data.LicenseMinecraft,
                 data.BuildingLevel,
                 data.AdequacyLevel,
-                data.Discription,
+                data.Description,
                 data.Status
-                ));
+            );
+            return Results.Ok(response);
         }
 
-        private static async Task<IResult> Status([FromRoute] Guid id, QuestionnaireService service)
+        private static async Task<IResult> Status([FromRoute] Guid? id, IQuestionnaireService service)
         {
-            var data = await service.GetQuestionnaire(id);
+            var data = await service.GetUserQuestionnaire(id);
             if (data == null) {
                 return Results.Ok("Unfiled");
             }
@@ -54,26 +62,27 @@ namespace ibcraftservice.Endpoints
             return Results.Ok(data.Status);
         }
 
-        private static async Task<IResult> Delete([FromRoute] Guid id, QuestionnaireService service)
+        private static async Task<IResult> Delete([FromRoute] Guid id, IQuestionnaireService service)
         {
             await service.Delete(id);
             return Results.Ok();
         }
 
-        private static async Task<IResult> ApprovedUpdate([FromRoute] Guid id, QuestionnaireService service)
+        private static async Task<IResult> ApprovedUpdate([FromRoute] Guid id, IQuestionnaireService service)
         {
             string status = await service.Approve(id);
             return Results.Ok(status);
         }
 
-        private static async Task<IResult> RejectUpdate([FromRoute] Guid id, QuestionnaireService service)
+        private static async Task<IResult> RejectUpdate([FromRoute] Guid id, IQuestionnaireService service)
         {
             string status = await service.Reject(id);
             return Results.Ok(status);
         }
 
-        private static async Task<IResult> GetAll(QuestionnaireService service, HttpContext context)
+        private static async Task<IResult> GetAll(HttpContext context, IQuestionnaireService service)
         {
+            Console.WriteLine("Log");
             var quer = await service.GetAllQuestionnaire();
 
             var response = quer.Select(q => new QuesionnaireResponse(
@@ -86,41 +95,13 @@ namespace ibcraftservice.Endpoints
                 q.LicenseMinecraft, 
                 q.BuildingLevel, 
                 q.AdequacyLevel, 
-                q.Discription, 
+                q.Description, 
                 q.Status));
 
             return Results.Ok(response);
         }
 
-        private static async Task<IResult> AddQuesionnaire([FromBody] QuesionnaireRequest request, QuestionnaireService questionnaireService ,HttpContext context)
-        {
-            var token = context.Request.Cookies["dragonkey"];
 
-            if (string.IsNullOrEmpty(token))
-            {
-                return Results.Unauthorized();
-            }
-
-            try {
-
-            await questionnaireService.AddQuestionnaire(
-                request.Age,
-                request.playingTime,
-                request.AcceptRule,
-                request.PlayingServer,
-                request.LicenseMinecraft,
-                request.BuildingLevel,
-                request.AdequacyLevel,
-                request.Discription,
-                token
-                );
-            } catch (Exception ex) {
-                return Results.BadRequest(ex.Message);
-            }
-
-
-            return Results.Ok();
-        }
 
     }
 }
