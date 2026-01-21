@@ -86,6 +86,8 @@ app.UseCookiePolicy(new CookiePolicyOptions
     
 });
 
+app.UseCors("CorsPolicy");
+
 app.UseCors("AllowSpecificOrigin");
 app.UseHttpsRedirection();
 app.UseAuthentication();

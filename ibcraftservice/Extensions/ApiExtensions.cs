@@ -36,7 +36,29 @@ namespace ibcraftservice.Extensions
                 opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 opt.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(options =>
+            })
+            .AddCookie()
+            .AddGoogle(options =>
+            {
+                var clientId = configuration["Authentication:Google:ClientId"];
+
+                if (clientId == null)
+                {
+                    throw new ArgumentNullException(nameof(clientId));
+                }
+
+                var clientSecret = configuration["Authentication:Google:ClientSecret"];
+
+                if (clientSecret == null)
+                {
+                    throw new ArgumentNullException(nameof(clientSecret));
+                }
+                options.ClientId = clientId;
+                options.ClientSecret = clientSecret;
+                options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+
+            })
+            .AddJwtBearer(options =>
             {
                 var jwtOptions = configuration.GetSection(AuthOption.JwtOptionsKey)
                     .Get<AuthOption>() ?? throw new ArgumentException(nameof(AuthOption));

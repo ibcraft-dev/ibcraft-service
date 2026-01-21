@@ -100,10 +100,67 @@ namespace Ibcraft.Application.Service
 
         public async Task LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
         {
+            if (claimsPrincipal == null)
+            {
+                throw new ExternalLoginProviderException("Google", "ClaimsPrincipal is null");
+            }
+
+            var email = claimsPrincipal.FindFirstValue(ClaimTypes.Email);
+
+            if (email == null)
+            {
+                throw new ExternalLoginProviderException("Google", "Email is null");
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                var newuser = new UserEntity
+                {
+                    Nikname = null,
+                    UserName = email,
+                    Email = email,
+                    EmailConfirmed = true
+                };
+
+                var result = await _userManager.CreateAsync(newuser);
+
+                if (!result.Succeeded)
+                {
+                    throw new ExternalLoginProviderException("Google", $"Unable to create user: {string.Join(", ",
+                        result.Errors.Select(x => x.Description))}");
+                }
+
+                user = newuser;
+            };
+
+            var info = new UserLoginInfo("Google",
+                claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
+            "Google");
+
+            var loginResult = await _userManager.AddLoginAsync(user, info);
+
+            if (!loginResult.Succeeded)
+            {
+                throw new ExternalLoginProviderException("Google",
+                $"Unable to login user: {string.Join(", ",
+                    loginResult.Errors.Select(x => x.Description))}");
+            }
+
+            var (jwtToken, expirationDateInUtc) = _authProvider.GenerateToken(user);
+
+            var refreshToken = _authProvider.GenerateRefreshToken();
+            var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
+
+            user.RefreshToken = refreshToken;
+            user.TokenExpiration = refreshTokenExpirationDateInUtc;
+
+            await _userManager.UpdateAsync(user);
+
             
+            _authProvider.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
+            _authProvider.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
         }
-
-
     }
-
-}
+}  
