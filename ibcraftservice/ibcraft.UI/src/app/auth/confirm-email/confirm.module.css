@@ -1,0 +1,33 @@
+.BoxAlert{
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 200px;
+    width: 700px;
+    justify-content: center;
+    align-items: center;
+    padding: 50px;
+    border-radius: 50px;
+    background-color: var(--elementcolor);
+    gap: 10px;
+}
+
+.ContentBox{
+    display: flex;
+    min-height: 80vh;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+}
+
+.title{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+.ico {
+    width: 80px;
+    height: 80px;
+}

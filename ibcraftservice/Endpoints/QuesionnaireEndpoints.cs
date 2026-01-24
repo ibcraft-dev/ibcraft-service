@@ -3,7 +3,7 @@ using Ibcraft.Application.Abstracts;
 using ibcraftservice.Core.Quesionnaire;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ibcraftservice.Endpoints
+namespace ibcraft.API.Endpoints
 {
     public static class QuesionnaireEndpoints
     {

@@ -7,7 +7,7 @@ using Ibcraft.Application.Service;
 using Ibcraft.DataAccess;
 using Ibcraft.DataAccess.Repositories;
 using Ibcraft.Infrastructure;
-using ibcraftservice.Extensions;
+using ibcraft.API.Extensions;
 using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +24,14 @@ if (!Directory.Exists(staticPath))
     Directory.CreateDirectory(staticPath);
 }
 
+
+builder.Services.AddCors(opt =>
+{
+    opt.AddPolicy("CorsPolicy,", opt =>
+    {
+        opt.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins("http://localhost:3000");
+    });
+});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

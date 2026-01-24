@@ -1,13 +1,13 @@
 ﻿using Ibcraft.DataAccess;
 using Ibcraft.Infrastructure;
-using ibcraftservice.Endpoints;
+using ibcraft.API.Endpoints;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-namespace ibcraftservice.Extensions
+namespace ibcraft.API.Extensions
 {
     public static class ApiExtensions
     {
@@ -56,6 +56,7 @@ namespace ibcraftservice.Extensions
                 options.ClientId = clientId;
                 options.ClientSecret = clientSecret;
                 options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.CallbackPath = "/api/account/google/callback";
 
             })
             .AddJwtBearer(options =>

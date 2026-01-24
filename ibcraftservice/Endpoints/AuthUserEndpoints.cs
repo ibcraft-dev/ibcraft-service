@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ibcraftservice.Endpoints;
+namespace ibcraft.API.Endpoints;
 
 public static class AuthUserEndpoints
 {
@@ -20,9 +20,10 @@ public static class AuthUserEndpoints
         group.MapPost("register", Register);
         group.MapPost("login", Login);
         group.MapPost("logout", Logout);
+        group.MapPost("refresh", ResetRefreshToken);
         group.MapDelete("delete-user", DeleteUser).RequireAuthorization();
-        group.MapGet("google", authAccountGoogle);
-        group.MapGet("google/callback", callbackGoogle).WithName("GoogleLoginCallback");
+        group.MapGet("login/google", authAccountGoogle);
+        group.MapGet("login/google/callback", callbackGoogle).WithName("GoogleLoginCallback");
 
         return builder;
     }
@@ -42,19 +43,19 @@ public static class AuthUserEndpoints
     private static async Task<IResult> callbackGoogle( 
         [FromQuery] string returnUrl,
         HttpContext context,
-        [FromServices] AccountService accountService)
+        IAccountService accountService)
     {
-       var result = await context.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+        Console.WriteLine("ХУЙ!");
+        var result = await context.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
 
-        if (!result.Succeeded)
+        if (!result.Succeeded || result.Principal == null)
         {
-            return Results.Unauthorized();
+           return Results.Redirect("/login?error=external_login_failed");
         }
 
         await accountService.LoginWithGoogleAsync(result.Principal);
 
         return Results.Redirect(returnUrl);
-
     }
 
      private static async Task<IResult> DeleteUser()

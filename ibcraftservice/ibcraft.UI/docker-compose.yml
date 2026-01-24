@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  ibcraft-app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_DEVMODE=production
+    restart: always
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+      # - "443:443" # Раскомментировать для HTTPS
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./.next/static:/app/.next/static:ro  
+      # - ./certbot/www:/var/www/certbot # Раскомментировать для HTTPS
+      # - ./certbot/conf:/etc/letsencrypt # Раскомментировать для HTTPS
+    depends_on:
+      - ibcraft-app 
+    restart: always

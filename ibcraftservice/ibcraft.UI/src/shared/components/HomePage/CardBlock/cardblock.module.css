@@ -1,0 +1,113 @@
+.card_blocks {
+    /* max-height: 240vh; */
+    margin-top: 170px;
+    display: flex;
+    justify-content: center;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: 290px 290px 290px;
+    column-gap: 90px;
+}
+
+.card {
+    width: 290px;
+    height: 470px;
+    background-color: #13061E;
+    border-radius: 45px;
+    position: relative;
+}
+
+
+@property --angle{
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+.card::after, .card::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 50%;
+    left: 50%;
+    background-image: conic-gradient(from var(--angle),#dd03e4, #5611ec,#c471f5, #fa71cd, #5611ec, #dd03e4);
+    translate: -50% -50%;
+    z-index: -1;
+    padding: 3px;
+    border-radius: 45px;
+    animation: 3s spin linear infinite;
+}
+
+.card::after {
+    filter: blur(1.5rem);
+    opacity: 0.5;
+}
+
+@keyframes spin {
+    from {
+        --angle: 0deg;
+    }
+    to {
+        --angle: 360deg;
+    }
+}
+
+.title_card {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 5px;
+    font-size: 20px;
+    font-weight: bold;
+    gap: 18px;
+}
+
+.context_list {
+    list-style-type: disc;
+    list-style-position: inside;
+    padding: 10px 20px;
+    font-size: 18px;
+}
+
+.context_list li {
+    margin-top: 10px;
+}
+
+.context_card {
+    font-size: 22px;
+    padding: 10px 20px;
+    line-height: 30px;
+}
+
+
+
+@media (max-width: 1060px) {
+  .cards {
+    column-gap: 20px;
+  }
+}
+
+@media (max-width: 965px) {
+    .cards {
+        grid-template-rows: 290px 290px 400px;
+        grid-template-columns:none;
+
+        row-gap: 250px;
+    }
+}
+
+@media (max-height: 540px) {
+    .cards {
+        position: relative;
+    }
+}
+
+@media (max-height: 344px) {
+    .card_blocks{
+        max-height: 400vh;
+    }
+}

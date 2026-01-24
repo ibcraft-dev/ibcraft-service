@@ -1,0 +1,21 @@
+.status_icon {
+    width: 50px; 
+    height: 50px; 
+    display: inline-block; 
+    fill: rgb(187, 17, 68);
+}
+
+.status_header {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    align-items: center;
+    margin: 20px 10px;
+}
+
+.status_item {
+    padding: 30px 50px;
+    background-color: #2b0d44;
+    border-radius: 40px;
+    box-shadow: 0 8px 8px rgba(0, 0, 0, 0.404);
+}
