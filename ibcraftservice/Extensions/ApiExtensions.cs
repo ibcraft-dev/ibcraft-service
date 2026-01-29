@@ -1,7 +1,6 @@
 ﻿using Ibcraft.DataAccess;
 using Ibcraft.Infrastructure;
 using ibcraft.API.Endpoints;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -37,7 +36,7 @@ namespace ibcraft.API.Extensions
                 opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 opt.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            .AddCookie()
+            .AddCookie("External")
             .AddGoogle(options =>
             {
                 var clientId = configuration["Authentication:Google:ClientId"];
@@ -55,8 +54,10 @@ namespace ibcraft.API.Extensions
                 }
                 options.ClientId = clientId;
                 options.ClientSecret = clientSecret;
-                options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.CallbackPath = "/api/account/google/callback";
+                options.SignInScheme = "External";
+
+                options.CorrelationCookie.SameSite = SameSiteMode.None;
+                options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
 
             })
             .AddJwtBearer(options =>

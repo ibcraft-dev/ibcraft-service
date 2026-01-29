@@ -8,7 +8,6 @@ using Ibcraft.DataAccess;
 using Ibcraft.DataAccess.Repositories;
 using Ibcraft.Infrastructure;
 using ibcraft.API.Extensions;
-using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -27,7 +26,7 @@ if (!Directory.Exists(staticPath))
 
 builder.Services.AddCors(opt =>
 {
-    opt.AddPolicy("CorsPolicy,", opt =>
+    opt.AddPolicy("CorsPolicy", opt =>
     {
         opt.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins("http://localhost:3000");
     });
@@ -46,7 +45,13 @@ builder.Services.AddIdentity<UserEntity, IdentityRole<Guid>>(opt =>
     opt.Password.RequireUppercase = true;
     opt.Password.RequiredLength = 8;
     opt.User.RequireUniqueEmail = true;
-}).AddEntityFrameworkStores<IbCraftDbContext>();
+}).AddEntityFrameworkStores<IbCraftDbContext>().AddDefaultTokenProviders();
+
+builder.Services.ConfigureExternalCookie(options =>
+{
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
 
 
 builder.Services.AddDbContext<IbCraftDbContext>(options =>
@@ -75,6 +80,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    
 }
 
 app.UseStaticFiles(new StaticFileOptions
@@ -84,22 +90,17 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 
-app.UseHttpsRedirection();
-
+app.UseCors("CorsPolicy");
 app.UseCookiePolicy(new CookiePolicyOptions
 {
     MinimumSameSitePolicy = SameSiteMode.None,
-    HttpOnly = HttpOnlyPolicy.None,
-    Secure = CookieSecurePolicy.Always,
-    
+    Secure = CookieSecurePolicy.Always
 });
 
-app.UseCors("CorsPolicy");
-
-app.UseCors("AllowSpecificOrigin");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+// app.UseRouting();
 
 app.MapControllers();
 app.AddMappedEndpoints();

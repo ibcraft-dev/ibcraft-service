@@ -1,12 +1,7 @@
 
-
 using Ibcraft.Application.Abstracts.Auth;
-using Ibcraft.Application.Entity;
-using Ibcraft.Application.Service;
 using Ibcraft.Core.Requests;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ibcraft.API.Endpoints;
@@ -15,15 +10,15 @@ public static class AuthUserEndpoints
 {
     public static IEndpointRouteBuilder MapAuthUserEndpoints(this IEndpointRouteBuilder builder)
     {
-        var group = builder.MapGroup("/account/");
+        var group = builder.MapGroup("/auth/");
 
         group.MapPost("register", Register);
         group.MapPost("login", Login);
         group.MapPost("logout", Logout);
         group.MapPost("refresh", ResetRefreshToken);
         group.MapDelete("delete-user", DeleteUser).RequireAuthorization();
-        group.MapGet("login/google", authAccountGoogle);
-        group.MapGet("login/google/callback", callbackGoogle).WithName("GoogleLoginCallback");
+        group.MapGet("/google", authAccountGoogle);
+        group.MapGet("/google/callback", callbackGoogle).WithName("GoogleLoginCallback");
 
         return builder;
     }
@@ -31,13 +26,15 @@ public static class AuthUserEndpoints
     private static async Task<IResult> authAccountGoogle(
     [FromQuery] string returnUrl,
     [FromServices] LinkGenerator linkGenerator,
-    [FromServices] SignInManager<UserEntity> signIn, 
     HttpContext httpContext)
     {
-        var properties = signIn.ConfigureExternalAuthenticationProperties("Google",
-         linkGenerator.GetPathByName(httpContext, "GoogleLoginCallback" + $"?returnUrl={returnUrl}"));
         
-        return Results.Challenge(properties, ["Google"]);
+        var props = new AuthenticationProperties
+        {
+            RedirectUri = $"/api/auth/google/callback?returnUrl={returnUrl}"
+        };
+
+        return Results.Challenge(props, new[] { "Google" });
     }
 
     private static async Task<IResult> callbackGoogle( 
@@ -45,8 +42,7 @@ public static class AuthUserEndpoints
         HttpContext context,
         IAccountService accountService)
     {
-        Console.WriteLine("ХУЙ!");
-        var result = await context.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+        var result = await context.AuthenticateAsync("External");
 
         if (!result.Succeeded || result.Principal == null)
         {
