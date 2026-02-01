@@ -6,14 +6,12 @@ import style from "./header.module.css"
 import logo from "@static/logo.svg"
 import Link from "next/link";
 import Image from "next/image";
-import { useAuth } from "../Auth/AuthContext";
 import icouser from "@static/GkSrQGFXUAA0Ar_.png"
 import Cookies from 'js-cookie';
 
 
 function Header() {
     const [isOpen, setIsOpen] = useState(false);
-    const { user, isAuth, logout } = useAuth();
     const hidden = Cookies.get('hidden') === 'true' ? true : false;
 
     const toggleMenu = () => {
@@ -68,26 +66,10 @@ function Header() {
                             </li>
                             {hidden ? null :
                                 <li className={style.list_nav}>
-                                {isAuth ? <>
-                                    <div className={style.dropdown_content}>
-                                        <Link href="/profile" className={`${style.user_btn} ${style.flex}`}>
-                                            {user?.avatarIco ? <><img src={process.env.NEXT_PUBLIC_SERVER_URL_HTTP + user.avatarIco} alt="user" className={style.userIco} /></> :
-                                                <>
-                                                    <Image src={icouser} alt="user" className={style.userIco} />
-                                                </>}
-                                        </Link>
-                                        <div className={style.header_dropdown}>
-                                            <p className={style.username}>{user?.name}</p>
-                                            <Link href="/profile">Профиль</Link>
-                                            <a href="" onClick={logout}>Выход</a>
-                                        </div>
-                                    </div>
-                                </> :
-                                    <Link href="/auth" className={`${style.nav_btn} ${style.isDisabled}`}>
-                                        <p className={style.login}>Авторизация</p>
-                                        <span id={style.login} className={style.btn_ico}></span>
-                                    </Link>
-                                }
+                                <Link href="/auth" className={`${style.nav_btn}`}>
+                                    <p className={style.login}>Авторизация</p>
+                                    <span id={style.login} className={style.btn_ico}></span>
+                                </Link>
                             </li>}
                             <ul className={style.social_btn}>
                                 <li className={style.list_nav}>

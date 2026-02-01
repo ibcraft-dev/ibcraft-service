@@ -4,7 +4,6 @@ import localFont from "next/font/local";
 import "@styles/reset.css";
 import "@styles/globals.css";
 import 'boxicons/css/boxicons.min.css';
-import { AuthProvider } from "@components/Auth/AuthContext";
 import { AlertProvider } from "@components/alert/alertContext";
 import ConditionalHeader from "@components/ConditionalHeader";
 import ConditionalFooter from "@components/ConditionalFooter";
@@ -31,13 +30,11 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body className={`${Oxygen.variable} soid`}>
-        <AuthProvider>
           <AlertProvider>
             <ConditionalHeader />
             {children}
             <ConditionalFooter />
           </AlertProvider>
-        </AuthProvider>
       </body>
     </html>
   );
