@@ -23,5 +23,13 @@ services:
       - 8080:8080
     restart: unless-stopped
 
+  frontend_ibcraft:
+    build: ./ibcraft.UI
+    container_name: frontend-ibcraft
+    depends_on:
+      - backend_ibcraft
+    ports:
+    - 3000:3000
+
 volumes:
   postgres_data:
