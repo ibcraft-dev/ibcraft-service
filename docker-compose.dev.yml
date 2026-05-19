@@ -20,6 +20,8 @@ services:
   backend_ibcraft:
     image: mcr.microsoft.com/dotnet/sdk:8.0
     container_name: backend-ibcraft-dev
+    env_file:
+      - .env.dev
     working_dir: /src
     depends_on:
       db_ibcraft:
