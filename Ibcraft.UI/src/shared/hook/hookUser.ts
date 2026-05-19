@@ -162,7 +162,11 @@ const fetchUpdateNikname = async (payload: { newNikname: string }) => {
 };
 
 const googleAuth = () => {
-    window.location.href = 'https://localhost:7157/api/auth/google?returnUrl=http://localhost:3000'
+    const apiUrl = process.env.NEXT_PUBLIC_SERVER_URL_HTTP ?? "";
+    const normalizedApiUrl = apiUrl.endsWith("/") ? apiUrl.slice(0, -1) : apiUrl;
+    const returnUrl = encodeURIComponent(window.location.origin);
+
+    window.location.href = normalizedApiUrl + "/api/auth/google?returnUrl=" + returnUrl;
 }
 
 export  { 
