@@ -5,12 +5,27 @@ import { TypefetchRegister } from "./IUser";
 
 const fetchUser = async () => {
     try {
-        const response = await api.get('/get-me');
+        const response = await api.get('/api/auth/get-me');
         return response.data;
     } catch (error) {
         console.log('Error fetching user:', error);
         return null;
     };
+};
+
+const fetchLogout = async () => {
+    try {
+        const response = await api.post('/api/auth/logout');
+        return { data: response.data, status: response.status };
+    } catch (error) {
+        if(axios.isAxiosError(error) && error.response) {
+            console.error('Error fetching logout:', error.response.data);
+            return { data: null, status: error.response.status };
+        } else {
+            console.error('Network error:', error);
+            return { data: null, status: 500 };
+        }
+    }
 };
 
 const fetchLogin = async (payload: { email: string, password: string }) => {
@@ -180,5 +195,6 @@ export  {
     fetchResetPassword, 
     fetchUpdateUserAvatar, 
     fetchUpdateNikname,
+    fetchLogout,
     googleAuth };
 

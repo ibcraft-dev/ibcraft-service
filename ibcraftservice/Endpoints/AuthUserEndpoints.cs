@@ -1,8 +1,11 @@
 
 using Ibcraft.Application.Abstracts.Auth;
+using Ibcraft.Application.Entity;
 using Ibcraft.Core.Requests;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ibcraft.API.Endpoints;
 
@@ -15,6 +18,7 @@ public static class AuthUserEndpoints
         group.MapPost("register", Register);
         group.MapPost("login", Login);
         group.MapPost("logout", Logout);
+        group.MapGet("get-me", GetMe).RequireAuthorization();
         group.MapPost("refresh", ResetRefreshToken);
         group.MapDelete("delete-user", DeleteUser).RequireAuthorization();
         group.MapGet("/google", authAccountGoogle);
@@ -64,6 +68,32 @@ public static class AuthUserEndpoints
         {
             context.Response.Cookies.Delete("ACCESS_TOKEN");
             return Results.Ok();
+        }
+
+        private static async Task<IResult> GetMe(
+            HttpContext context,
+            [FromServices] UserManager<UserEntity> userManager)
+        {
+            var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Results.Unauthorized();
+            }
+
+            var user = await userManager.FindByIdAsync(userId);
+
+            if (user is null)
+            {
+                return Results.NotFound();
+            }
+
+            return Results.Ok(new
+            {
+                id = user.Id,
+                name = user.Nikname ?? user.UserName ?? user.Email,
+                avatarIco = user.UserAvatar
+            });
         }
 
 

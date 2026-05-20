@@ -8,14 +8,23 @@ import Link from "next/link";
 import Image from "next/image";
 import icouser from "@static/GkSrQGFXUAA0Ar_.png"
 import Cookies from 'js-cookie';
+import { fetchLogout, fetchUser } from "@hooks/hookUser";
+import { User } from "@hooks/IUser";
 
 
 function Header() {
     const [isOpen, setIsOpen] = useState(false);
+    const [user, setUser] = useState<User | null>(null);
     const hidden = Cookies.get('hidden') === 'true' ? true : false;
+    const isAuth = Boolean(user);
 
     const toggleMenu = () => {
         setIsOpen(!isOpen);
+    }
+
+    const logout = async () => {
+        await fetchLogout();
+        setUser(null);
     }
 
     useEffect(() => {
@@ -28,6 +37,15 @@ function Header() {
             document.body.style.overflow = '';
         };
     }, [isOpen])
+
+    useEffect(() => {
+        const loadUser = async () => {
+            const currentUser = await fetchUser();
+            setUser(currentUser);
+        };
+
+        loadUser();
+    }, [])
 
     return (
         <header className={`${style.header} ${style.fixed}`}>
@@ -66,11 +84,32 @@ function Header() {
                             </li>
                             {hidden ? null :
                                 <li className={style.list_nav}>
-                                <Link href="/auth" className={`${style.nav_btn}`}>
-                                    <p className={style.login}>Авторизация</p>
-                                    <span id={style.login} className={style.btn_ico}></span>
-                                </Link>
-                            </li>}
+                                    {isAuth ? (
+                                        <div className={style.dropdown_content}>
+                                            <Link href="/profile" className={style.user_btn}>
+                                                {user?.avatarIco ? (
+                                                    <img
+                                                        src={process.env.NEXT_PUBLIC_SERVER_URL_HTTP + user.avatarIco}
+                                                        alt="user"
+                                                        className={style.userIco}
+                                                    />
+                                                ) : (
+                                                    <Image src={icouser} alt="user" className={style.userIco} />
+                                                )}
+                                            </Link>
+                                            <div className={style.header_dropdown}>
+                                                <p className={style.username}>{user?.name}</p>
+                                                <Link href="/profile">Профиль</Link>
+                                                <button type="button" onClick={logout}>Выход</button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <Link href="/auth" className={`${style.nav_btn}`}>
+                                            <p className={style.login}>Авторизация</p>
+                                            <span id={style.login} className={style.btn_ico}></span>
+                                        </Link>
+                                    )}
+                                </li>}
                             <ul className={style.social_btn}>
                                 <li className={style.list_nav}>
                                     <a href="/vk" className={style.nav_btn_mini}>

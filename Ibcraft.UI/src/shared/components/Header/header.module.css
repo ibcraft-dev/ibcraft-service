@@ -162,22 +162,32 @@
     z-index: 1;
     top: 100%; 
     padding-top: 5px; 
+    overflow: hidden;
 }
 
-.header_dropdown a {
+.header_dropdown a,
+.header_dropdown button {
     color: white;
     padding: 10px 15px;
     text-decoration: none;
     display: block;
     transition: .5s;
     font-weight: bold;
+    width: 100%;
+    box-sizing: border-box;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
   }
 
 .dropdown_content:hover .header_dropdown {
     display: block;
 }
   
-.header_dropdown a:hover {
+.header_dropdown a:hover,
+.header_dropdown button:hover {
     background-color: #13061e;
 }
 
