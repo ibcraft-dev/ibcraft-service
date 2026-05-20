@@ -39,7 +39,7 @@ services:
       - nuget_packages:/root/.nuget/packages
     command: >
       sh -c "dotnet restore ibcraftservice/ibcraft.API.csproj &&
-      dotnet watch --project ibcraftservice/ibcraft.API.csproj run --urls http://0.0.0.0:8080"
+      dotnet watch --project ibcraftservice/ibcraft.API.csproj run --urls http://0.0.0.0:8080 --migrate"
 
   frontend_ibcraft:
     image: node:20-alpine
