@@ -11,12 +11,13 @@ export default function ProtectedForm({children, userId} : {children: ReactNode,
     const status = useStatus(userId ?? "");
 
     useEffect(() => {
-        
         if (status === null) {
             setStatusForm(false);
+            return;
         } else if ( status !== "Unfiled") {
             router.push("/profile");
-            console.log(status) 
+            setStatusForm(false);
+            return;
         }
 
         setStatusForm(true);

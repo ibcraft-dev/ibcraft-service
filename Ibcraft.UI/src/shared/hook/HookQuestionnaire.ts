@@ -1,5 +1,5 @@
 import axios from "axios";
-import api from "../api/api"
+import api from "../api/api";
 
 type QuesionnaireType = {
     age: number;
@@ -9,42 +9,39 @@ type QuesionnaireType = {
     licenseMinecraft: boolean;
     buildingLevel: number;
     adequacyLevel: number;
-    discription: string;
+    description: string;
 };
 
 const fetchStatus = async (id: string) => {
     try {
         if (id === "") {
-            return { data: null, status: null};
+            return { data: null, status: null };
         }
 
-        const response = await api.get(`/quesionnaire/${id}/status`);
+        const response = await api.get(`/api/questionnaire/${id}/status`);
         return { data: response.data, status: response.status };
     } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
             return { data: null, status: error.response.status };
-        } else {
-            console.error('Network error:', error);
-            return { data: null, status: 500 };
         }
-    };
+
+        console.error("Network error:", error);
+        return { data: null, status: 500 };
+    }
 };
 
 const fetchSend = async (payload: QuesionnaireType) => {
-   try {
-     const post = await api.post('quesionnaire/quest-post', payload);
-     return { data: 'Данные успешно отправлены', code: post.status };
-   } catch (error) {
+    try {
+        const post = await api.post("/api/questionnaire/create", payload);
+        return { data: "Данные успешно отправлены", code: post.status };
+    } catch (error) {
         if (axios.isAxiosError(error) && error.response) {
-            return { data: error.response.data, code: error.response.status }
-        } else {
-            console.error('Ошибка при отправке данных:', error);
-            return { data: null, code: 500 };
+            return { data: error.response.data, code: error.response.status };
         }
-    };
-        
+
+        console.error("Ошибка при отправке данных:", error);
+        return { data: null, code: 500 };
+    }
 };
 
-
-
-export {fetchStatus, fetchSend};
+export { fetchStatus, fetchSend };

@@ -1,28 +1,53 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
 import { useAlert } from "@components/alert/alertContext";
 import Alert from "@components/alert/succesAlert";
 import BubbleControler from "@components/EffectComponents/BubbleControler";
 import FormPass from "@components/forms/formspass";
 import ProtectedForm from "@components/forms/ProtectedForm";
-
-
+import Loader from "@components/Loader";
+import { fetchUser } from "@hooks/hookUser";
+import { User } from "@hooks/IUser";
 
 export default function GetPenetrationPage() {
-    BubbleControler();
+    const router = useRouter();
     const { alertMessage, alertColor, alertSuccess } = useAlert();
+    const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
+    BubbleControler();
+
+    useEffect(() => {
+        const loadUser = async () => {
+            const currentUser = await fetchUser();
+
+            if (!currentUser) {
+                router.replace("/auth");
+                return;
+            }
+
+            setUser(currentUser);
+            setIsLoading(false);
+        };
+
+        loadUser();
+    }, [router]);
+
+    if (isLoading || !user) {
+        return <Loader />;
+    }
 
     return (
-
-        <>
-        {alertMessage && (
-            <Alert Success={alertSuccess} Color={alertColor}>
-                {alertMessage}
-            </Alert>
-        )}
+        <ProtectedForm userId={user.id}>
+            {alertMessage && (
+                <Alert Success={alertSuccess} Color={alertColor}>
+                    {alertMessage}
+                </Alert>
+            )}
             <FormPass />
-        </>
-
-    )
+        </ProtectedForm>
+    );
 }

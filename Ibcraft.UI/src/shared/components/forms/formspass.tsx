@@ -59,7 +59,7 @@ export default function FormPass() {
             licenseMinecraft: license, 
             buildingLevel: rangeBuild,
             adequacyLevel: rangeAdequacy,
-            discription: discription});
+            description: discription});
         
         if (sendPost.code !== 200) {
             return setAlert(sendPost.data, "red");
