@@ -8,7 +8,7 @@ import Link from "next/link";
 import Image from "next/image";
 import icouser from "@static/GkSrQGFXUAA0Ar_.png"
 import Cookies from 'js-cookie';
-import { fetchLogout, fetchUser } from "@hooks/hookUser";
+import { AUTH_STATE_CHANGED_EVENT, fetchLogout, fetchUser } from "@hooks/hookUser";
 import { User } from "@hooks/IUser";
 
 
@@ -45,6 +45,14 @@ function Header() {
         };
 
         loadUser();
+
+        window.addEventListener(AUTH_STATE_CHANGED_EVENT, loadUser);
+        window.addEventListener("focus", loadUser);
+
+        return () => {
+            window.removeEventListener(AUTH_STATE_CHANGED_EVENT, loadUser);
+            window.removeEventListener("focus", loadUser);
+        };
     }, [])
 
     return (

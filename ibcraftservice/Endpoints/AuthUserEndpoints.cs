@@ -1,6 +1,7 @@
 
 using Ibcraft.Application.Abstracts.Auth;
 using Ibcraft.Application.Entity;
+using Ibcraft.Application.Interfaces.Repositories;
 using Ibcraft.Core.Requests;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -19,6 +20,8 @@ public static class AuthUserEndpoints
         group.MapPost("login", Login);
         group.MapPost("logout", Logout);
         group.MapGet("get-me", GetMe).RequireAuthorization();
+        group.MapPut("nikname-update", UpdateNikname).RequireAuthorization();
+        group.MapPut("update-avatar", UpdateAvatar).RequireAuthorization().DisableAntiforgery();
         group.MapPost("refresh", ResetRefreshToken);
         group.MapDelete("delete-user", DeleteUser).RequireAuthorization();
         group.MapGet("/google", authAccountGoogle);
@@ -96,6 +99,78 @@ public static class AuthUserEndpoints
             });
         }
 
+        private static async Task<IResult> UpdateNikname(
+            [FromBody] UpdateNiknameRequest request,
+            HttpContext context,
+            [FromServices] IUserRepository userRepository)
+        {
+            var userId = GetCurrentUserId(context);
+
+            if (userId is null)
+            {
+                return Results.Unauthorized();
+            }
+
+            if (string.IsNullOrWhiteSpace(request.NewNikname))
+            {
+                return Results.BadRequest("Nikname cannot be empty.");
+            }
+
+            await userRepository.UpdateNikname(userId.Value, request.NewNikname.Trim());
+
+            return Results.Ok();
+        }
+
+        private static async Task<IResult> UpdateAvatar(
+            IFormFile file,
+            HttpContext context,
+            [FromServices] IUserRepository userRepository,
+            [FromServices] IWebHostEnvironment environment)
+        {
+            var userId = GetCurrentUserId(context);
+
+            if (userId is null)
+            {
+                return Results.Unauthorized();
+            }
+
+            if (file.Length == 0)
+            {
+                return Results.BadRequest("File cannot be empty.");
+            }
+
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            var allowedExtensions = new HashSet<string> { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+
+            if (!allowedExtensions.Contains(extension))
+            {
+                return Results.BadRequest("Unsupported image format.");
+            }
+
+            var avatarsPath = Path.Combine(environment.ContentRootPath, "static", "avatars");
+            Directory.CreateDirectory(avatarsPath);
+
+            var fileName = $"{userId.Value:N}-{Guid.NewGuid():N}{extension}";
+            var filePath = Path.Combine(avatarsPath, fileName);
+
+            await using (var stream = File.Create(filePath))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var avatarUrl = $"/static/avatars/{fileName}";
+            await userRepository.UpdateAvatarUrl(userId.Value, avatarUrl);
+
+            return Results.Ok(new { avatarIco = avatarUrl });
+        }
+
+        private static Guid? GetCurrentUserId(HttpContext context)
+        {
+            var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            return Guid.TryParse(userId, out var parsedUserId) ? parsedUserId : null;
+        }
+
 
         private static async Task<IResult> Login([FromBody] LoginRequest request, IAccountService accountService)
         {
@@ -115,5 +190,7 @@ public static class AuthUserEndpoints
             await accountService.RefreshTokenAsync(refreshToken);
             return Results.Ok();
         }
+
+        private record UpdateNiknameRequest(string NewNikname);
 
 }

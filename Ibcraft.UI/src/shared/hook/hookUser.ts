@@ -3,6 +3,14 @@ import api from "../api/api";
 import Cookies from "js-cookie";
 import { TypefetchRegister } from "./IUser";
 
+const AUTH_STATE_CHANGED_EVENT = "auth-state-changed";
+
+const notifyAuthStateChanged = () => {
+    if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event(AUTH_STATE_CHANGED_EVENT));
+    }
+};
+
 const fetchUser = async () => {
     try {
         const response = await api.get('/api/auth/get-me');
@@ -16,6 +24,7 @@ const fetchUser = async () => {
 const fetchLogout = async () => {
     try {
         const response = await api.post('/api/auth/logout');
+        notifyAuthStateChanged();
         return { data: response.data, status: response.status };
     } catch (error) {
         if(axios.isAxiosError(error) && error.response) {
@@ -139,7 +148,7 @@ const fetchCheckToken = async () => {
 
 const fetchUpdateUserAvatar = async (payload: {file: FormData}) => {
     try {
-        const response = await api.put('/update-avatar', payload.file,
+        const response = await api.put('/api/auth/update-avatar', payload.file,
             {
                 headers: {
                   "Content-Type": "multipart/form-data",
@@ -163,7 +172,7 @@ const fetchUpdateUserAvatar = async (payload: {file: FormData}) => {
 
 const fetchUpdateNikname = async (payload: { newNikname: string }) => {
     try {
-        const response = await api.put('/nikname-update', payload);
+        const response = await api.put('/api/auth/nikname-update', payload);
         return { data: response.data, status: response.status };
     } catch (error) {
         if(axios.isAxiosError(error) && error.response) {
@@ -196,5 +205,6 @@ export  {
     fetchUpdateUserAvatar, 
     fetchUpdateNikname,
     fetchLogout,
+    AUTH_STATE_CHANGED_EVENT,
     googleAuth };
 
