@@ -10,7 +10,9 @@
 
 ## Деплой через докер
 
-
+```bash
+sudo docker compose -f docker-compose.dev.yml up
+```
 
 - Чтобы преминить миграции:
 ```bash
