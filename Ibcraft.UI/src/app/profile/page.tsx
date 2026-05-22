@@ -71,6 +71,15 @@ function getProfileStatus(status: string | null): ProfileStatus {
     }
 }
 
+function needsNickname(user: User) {
+    const name = user.name?.trim();
+
+    return !name ||
+        /^telegram_.+@external\.ibcraft\.local$/i.test(name) ||
+        /^discord_.+@external\.ibcraft\.local$/i.test(name) ||
+        /^google_.+@external\.ibcraft\.local$/i.test(name);
+}
+
 function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User | null) => void }) {
     const router = useRouter();
     const status = useStatus(user.id ?? "");
@@ -82,6 +91,8 @@ function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User
     const [preview, setPreview] = useState<string | null>(null);
     const [file, setFile] = useState<File | null>(null);
     const [message, setMessage] = useState<string | null>(null);
+    const mustSetNickname = needsNickname(user);
+    const displayName = mustSetNickname ? "Нужно задать никнейм" : user.name;
 
     const avatarSrc = user.avatarIco
         ? `${process.env.NEXT_PUBLIC_SERVER_URL_HTTP}${user.avatarIco}`
@@ -95,6 +106,13 @@ function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User
             }
         };
     }, [preview]);
+
+    useEffect(() => {
+        if (mustSetNickname) {
+            setIsNameModalOpen(true);
+            setNickname("");
+        }
+    }, [mustSetNickname]);
 
     const refreshUser = async () => {
         const freshUser = await fetchUser();
@@ -163,6 +181,7 @@ function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User
         if (response.status === 200) {
             await refreshUser();
             setIsNameModalOpen(false);
+            setMessage(null);
         } else {
             setMessage("Не получилось обновить никнейм.");
         }
@@ -189,7 +208,7 @@ function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User
                         <div className={style.identity}>
                             <span className={style.kicker}>Личный кабинет</span>
                             <div className={style.nameRow}>
-                                <h1>{user.name || "Игрок IB Craft"}</h1>
+                                <h1>{displayName || "Игрок IB Craft"}</h1>
                                 {isAdmin ? (
                                     <span className={style.adminBadge} title="Администратор">
                                         <Crown size={19} />
@@ -229,7 +248,7 @@ function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User
                             <h2>Аккаунт</h2>
                             <div className={style.infoRow}>
                                 <span>Имя</span>
-                                <strong>{user.name || "Не задано"}</strong>
+                                <strong>{displayName || "Не задано"}</strong>
                             </div>
                             <div className={style.infoRow}>
                                 <span>Аватар</span>
@@ -244,9 +263,10 @@ function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User
                 </section>
             </div>
 
-            <Modal isOpen={isNameModalOpen} onClose={() => setIsNameModalOpen(false)}>
+            <Modal isOpen={isNameModalOpen} onClose={() => setIsNameModalOpen(false)} canClose={!mustSetNickname}>
                 <form className={style.modalForm} onSubmit={handleNicknameUpdate}>
-                    <h2>Смена никнейма</h2>
+                    <h2>{mustSetNickname ? "Задайте никнейм" : "Смена никнейма"}</h2>
+                    {mustSetNickname ? <p className={style.formHint}>После входа через внешний сервис нужно выбрать никнейм для профиля.</p> : null}
                     <input value={nickname} type="text" placeholder="Новый никнейм" onChange={(event) => setNickname(event.target.value)} />
                     {message ? <p className={style.formMessage}>{message}</p> : null}
                     <button type="submit" className={style.primaryButton} disabled={isSaving}>

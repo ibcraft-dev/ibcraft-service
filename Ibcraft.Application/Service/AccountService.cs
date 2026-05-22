@@ -100,7 +100,6 @@ namespace Ibcraft.Application.Service
 
         public async Task LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
         {
-
             if (claimsPrincipal == null)
                 throw new ExternalLoginProviderException("Google", "ClaimsPrincipal is null");
 
@@ -109,57 +108,138 @@ namespace Ibcraft.Application.Service
             if (string.IsNullOrEmpty(providerKey))
                 throw new ExternalLoginProviderException("Google", "NameIdentifier is null");
 
-            // 1. Сначала ищем пользователя по внешнему логину
-            var user = await _userManager.FindByLoginAsync("Google", providerKey);
+            var email = claimsPrincipal.FindFirstValue(ClaimTypes.Email);
+            var displayName = claimsPrincipal.FindFirstValue(ClaimTypes.Name);
+
+            await LoginWithExternalAsync("Google", providerKey, email, displayName, null);
+        }
+
+        public async Task LoginWithExternalAsync(
+            string provider,
+            string providerKey,
+            string? email,
+            string? displayName,
+            string? avatarUrl)
+        {
+            if (string.IsNullOrWhiteSpace(provider))
+                throw new ExternalLoginProviderException("External", "Provider is null");
+
+            if (string.IsNullOrWhiteSpace(providerKey))
+                throw new ExternalLoginProviderException(provider, "ProviderKey is null");
+
+            var user = await _userManager.FindByLoginAsync(provider, providerKey);
 
             if (user == null)
             {
-                var email = claimsPrincipal.FindFirstValue(ClaimTypes.Email);
+                var normalizedEmail = string.IsNullOrWhiteSpace(email)
+                    ? $"{provider.ToLowerInvariant()}_{providerKey}@external.ibcraft.local"
+                    : email.Trim();
 
-                if (email == null)
-                    throw new ExternalLoginProviderException("Google", "Email is null");
-
-                // 2. Если нет — ищем по email
-                user = await _userManager.FindByEmailAsync(email);
+                user = await _userManager.FindByEmailAsync(normalizedEmail);
 
                 if (user == null)
                 {
-                    // 3. Если и по email нет — создаём пользователя
+                    var userName = CreateExternalUserName(provider, providerKey, displayName);
+
                     user = new UserEntity
                     {
-                        Nikname = null,
-                        UserName = email,
-                        Email = email,
+                        Nikname = userName,
+                        UserName = userName,
+                        Email = normalizedEmail,
                         EmailConfirmed = true
                     };
+
+                    if (!string.IsNullOrWhiteSpace(avatarUrl))
+                    {
+                        user.UserAvatar = avatarUrl;
+                    }
 
                     var createResult = await _userManager.CreateAsync(user);
 
                     if (!createResult.Succeeded)
                     {
                         throw new ExternalLoginProviderException(
-                            "Google",
+                            provider,
                             $"Unable to create user: {string.Join(", ",
                                 createResult.Errors.Select(x => x.Description))}");
                     }
                 }
+                else if (string.IsNullOrWhiteSpace(user.UserAvatar) && !string.IsNullOrWhiteSpace(avatarUrl))
+                {
+                    if (string.IsNullOrWhiteSpace(user.Nikname) || user.Nikname == user.Email)
+                    {
+                        user.Nikname = CreateExternalUserName(provider, providerKey, displayName);
+                    }
 
-                // 4. Привязываем Google-логин ТОЛЬКО если его ещё нет
-                var info = new UserLoginInfo("Google", providerKey, "Google");
+                    user.UserAvatar = avatarUrl;
+                    await _userManager.UpdateAsync(user);
+                }
+
+                var info = new UserLoginInfo(provider, providerKey, provider);
 
                 var addLoginResult = await _userManager.AddLoginAsync(user, info);
 
                 if (!addLoginResult.Succeeded)
                 {
                     throw new ExternalLoginProviderException(
-                        "Google",
-                        $"Unable to add Google login: {string.Join(", ",
+                        provider,
+                        $"Unable to add external login: {string.Join(", ",
                             addLoginResult.Errors.Select(x => x.Description))}");
                 }
             }
+            var shouldUpdateUser = false;
 
-            // 5. Генерация токенов (твоя логика — всё ок)
+            if (string.IsNullOrWhiteSpace(user.UserAvatar) && !string.IsNullOrWhiteSpace(avatarUrl))
+            {
+                user.UserAvatar = avatarUrl;
+                shouldUpdateUser = true;
+            }
 
+            if (ShouldReplaceExternalFallbackName(user, provider))
+            {
+                user.Nikname = CreateExternalUserName(provider, providerKey, displayName);
+                shouldUpdateUser = true;
+            }
+
+            if (shouldUpdateUser)
+            {
+                await _userManager.UpdateAsync(user);
+            }
+
+            await SignInUserAsync(user);
+        }
+
+        private static bool ShouldReplaceExternalFallbackName(UserEntity user, string provider)
+        {
+            if (string.IsNullOrWhiteSpace(user.Nikname))
+            {
+                return true;
+            }
+
+            if (user.Nikname == user.Email)
+            {
+                return true;
+            }
+
+            var fallbackPrefix = $"{provider.ToLowerInvariant()}_";
+
+            return user.Nikname.StartsWith(fallbackPrefix, StringComparison.OrdinalIgnoreCase) &&
+                   user.Nikname.EndsWith("@external.ibcraft.local", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string CreateExternalUserName(string provider, string providerKey, string? displayName)
+        {
+            var userName = string.IsNullOrWhiteSpace(displayName)
+                ? $"{provider}_{providerKey}"
+                : displayName.Trim();
+
+            return userName.Length <= UserEntityFactory.MAX_NIKNAME_LENGTH
+                ? userName
+                : userName[..UserEntityFactory.MAX_NIKNAME_LENGTH];
+        }
+        
+        private async Task SignInUserAsync(UserEntity user)
+        {
             var (jwtToken, expirationDateInUtc) = _authProvider.GenerateToken(user);
 
             var refreshToken = _authProvider.GenerateRefreshToken();

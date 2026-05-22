@@ -210,6 +210,12 @@ input.form_nikname {
     background-color: var(--buttonhovercolor);
 }
 
+.telegram_widget {
+    display: flex;
+    justify-content: center;
+    min-height: 42px;
+}
+
 @media (max-width: 1055px) {
     h1.media_text {
         font-size: 30px;

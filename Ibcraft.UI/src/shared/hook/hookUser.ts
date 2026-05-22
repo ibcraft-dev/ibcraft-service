@@ -186,11 +186,19 @@ const fetchUpdateNikname = async (payload: { newNikname: string }) => {
 };
 
 const googleAuth = () => {
+    externalAuth("google");
+}
+
+const discordAuth = () => {
+    externalAuth("discord");
+}
+
+const externalAuth = (provider: "google" | "discord") => {
     const apiUrl = process.env.NEXT_PUBLIC_SERVER_URL_HTTP ?? "";
     const normalizedApiUrl = apiUrl.endsWith("/") ? apiUrl.slice(0, -1) : apiUrl;
     const returnUrl = encodeURIComponent(window.location.origin);
 
-    window.location.href = normalizedApiUrl + "/api/auth/google?returnUrl=" + returnUrl;
+    window.location.href = normalizedApiUrl + "/api/auth/" + provider + "?returnUrl=" + returnUrl;
 }
 
 export  { 
@@ -206,5 +214,5 @@ export  {
     fetchUpdateNikname,
     fetchLogout,
     AUTH_STATE_CHANGED_EVENT,
-    googleAuth };
-
+    googleAuth,
+    discordAuth };
