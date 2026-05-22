@@ -1,0 +1,77 @@
+.statusContainer {
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Центрируем содержимое по горизонтали */
+}
+
+.statusTitle {
+    font-size: 24px;
+    color: #E6E6E6;
+    margin-bottom: 25px;
+    font-weight: 600;
+    align-self: flex-start; /* Заголовок прижимаем к началу */
+}
+
+.statsGrid {
+    display: flex;
+    gap: 60px;
+    justify-content: center; /* Центрируем блоки по горизонтали */
+    width: 100%; /* Занимает всю доступную ширину */
+    flex-wrap: wrap; /* Перенос на маленьких экранах */
+}
+
+.statItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 120px;
+    background-color: rgb(26, 13, 43);
+    padding: 60px;
+    border-radius: 35px;
+    transition: .5s;
+}
+
+.statItem:hover {
+    box-shadow: 1px 5px 5px rgba(31, 15, 51, 0.518);
+}
+
+.statNumber {
+    font-size: 36px;
+    color: #FFFFFF;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.statLabel {
+    font-size: 19px;
+    color: #A5A5A5;
+    text-align: center;
+    line-height: 1.4;
+    
+}
+
+.devBlockContainer {
+    margin-top: 40px;
+    padding: 0 120px;
+    height: 400px;
+    display: flex;
+    justify-content: center;
+}
+
+.ItemBlock{
+    background-color: rgb(26, 13, 43);
+    height: 300px;
+    width: 1229px;
+    padding: 20px 0;
+    border-radius: 45px;
+}
+
+
+.containerTitle{
+    padding: 0 120px;
+    width: 1220px;
+    margin: auto;
+}

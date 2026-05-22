@@ -1,13 +1,12 @@
 ﻿using Ibcraft.DataAccess;
 using Ibcraft.Infrastructure;
-using ibcraftservice.Endpoints;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using ibcraft.API.Endpoints;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-namespace ibcraftservice.Extensions
+namespace ibcraft.API.Extensions
 {
     public static class ApiExtensions
     {
@@ -15,6 +14,7 @@ namespace ibcraftservice.Extensions
         public static void AddMappedEndpoints(this IEndpointRouteBuilder app)
         {
             app.MapGroup("api").MapAuthUserEndpoints();
+            app.MapGroup("api").MapAdminEndpoints();
             app.MapGroup("api").MapQuestionnaireEndpoints();
         }
 
@@ -36,7 +36,32 @@ namespace ibcraftservice.Extensions
                 opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 opt.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(options =>
+            })
+            .AddCookie("External")
+            .AddGoogle(options =>
+            {
+                var clientId = configuration["Authentication:Google:ClientId"];
+
+                if (clientId == null)
+                {
+                    throw new ArgumentNullException(nameof(clientId));
+                }
+
+                var clientSecret = configuration["Authentication:Google:ClientSecret"];
+
+                if (clientSecret == null)
+                {
+                    throw new ArgumentNullException(nameof(clientSecret));
+                }
+                options.ClientId = clientId;
+                options.ClientSecret = clientSecret;
+                options.SignInScheme = "External";
+
+                options.CorrelationCookie.SameSite = SameSiteMode.None;
+                options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+
+            })
+            .AddJwtBearer(options =>
             {
                 var jwtOptions = configuration.GetSection(AuthOption.JwtOptionsKey)
                     .Get<AuthOption>() ?? throw new ArgumentException(nameof(AuthOption));
@@ -63,7 +88,10 @@ namespace ibcraftservice.Extensions
             });
 
             
-            services.AddAuthorization();
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+            });
         }
     }
 }

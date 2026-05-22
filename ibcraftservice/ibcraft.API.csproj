@@ -30,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="ibcraft.UI\" />
     <Folder Include="static\" />
   </ItemGroup>
 

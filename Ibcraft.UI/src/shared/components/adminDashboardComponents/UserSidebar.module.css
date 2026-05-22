@@ -1,0 +1,150 @@
+.overlay {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.sidebar {
+    width: 450px;
+    height: 100%;
+    background-color: #1c102d;
+    color: white;
+    padding: 24px;
+    overflow-y: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    border-radius: 20px 0px 0px 20px;
+}
+
+.closeBtn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+.section{
+    padding: 16px 5px;
+    margin-top: 25px;
+    background-color: #13061e;
+    border-radius: 20px;
+}
+
+.section_password {
+    padding: 16px 5px;
+    margin-top: 25px;
+    background-color: #13061e;
+    border-radius: 20px;
+}
+
+
+.section h2 {
+    margin-left: 20px;
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.section button {
+    margin-left: 20px;
+}
+
+.section_password h2 {
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-weight: bold;
+    margin-left: 30px;
+}
+
+.section_password button {
+    margin-left: 30px;
+}
+
+.formGroup {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0px 20px;
+}
+
+.formGroup label {
+    
+    font-size: 14px;
+    color: #aaa;
+}
+
+.formGroup input {
+    background: #2a1e3e;
+    border: 1px solid #3d2a5a;
+    padding: 8px;
+    border-radius: 8px;
+    color: white;
+}
+
+.formGroupRow {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    margin-bottom: 16px;
+    align-items: center;
+    justify-content: center;
+}
+
+.formGroupRow input {
+    background: #2a1e3e;
+    border: 1px solid #3d2a5a;
+    padding: 8px;
+    border-radius: 8px;
+    color: white;
+}
+
+.readonlyBox {
+    background: #2a1e3e;
+    padding: 8px;
+    border-radius: 8px;
+    color: white;
+}
+
+.emailConfirmed {
+    margin-top: 4px;
+    background: #1d3827;
+    color: #76ff76;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    display: inline-block;
+}
+
+.applyBtn,
+.updateBtn {
+    background: #7a3b9a;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.applyBtn:hover,
+.updateBtn:hover {
+    background: #9c4fd8;
+}
+
+.formGroupRow {
+    display: flex;
+    gap: 12px;
+}
+

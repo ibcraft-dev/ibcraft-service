@@ -1,0 +1,119 @@
+
+
+html {
+  scroll-behavior: smooth;
+}
+
+h1 {
+  font-family: "Oxygen", system-ui;
+  font-weight: bold;
+  font-size: 40px;
+}
+
+:root {
+  --textcolor: #fff;
+  --textcolor2: #757575;
+  --buttonscolor: #8700FF;
+  --buttonhovercolor: #5900A9;
+  --elementcolor: #13061E;
+  --openelementcolor: #190826;
+  --main-color: #1a0d2b;
+}
+
+body::-webkit-scrollbar {
+  width: 10px;
+}
+
+
+body::-webkit-scrollbar-track {
+  -webkit-box-shadow: 5px 5px 5px -5px rgba(34, 60, 80, 0.2) inset;
+  background-color: var(--elementcolor);
+  border-radius: 10px;
+}
+
+body::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--buttonscolor), var(--openelementcolor));
+}
+
+html, body {
+  width: 100%;
+}
+
+
+body {
+  background: linear-gradient(162deg, rgba(151, 71, 255, 0.20) 0%, rgba(33, 11, 52, 0.20) 49.72%, rgba(135, 0, 255, 0.20) 98.15%), #210B34;
+  background-attachment: fixed;
+  color: var(--textcolor);
+  font-family: "Oxygen", system-ui;
+  transition: all 0.5s ease;
+}
+
+main {
+  margin-top: 120px;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1920px;
+  margin: 0 auto;
+  padding: 0 120px;
+  font-family: "Oxygen", system-ui;
+  
+}
+
+
+.bubble_background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.bubble {
+  -webkit-mask-image: url("/Vector.svg");
+  mask-image: url("/Vector.svg");
+
+  -webkit-mask-size: contain;
+  mask-size: contain;
+    
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  position: absolute;
+  bottom: -100px;
+  width: 20px;
+  height: 20px;
+  background-color: rgba(252, 146, 243, 0.249);
+  opacity: 0.3;
+  animation: bubble_animation 5s linear infinite;
+}
+
+
+@keyframes bubble_animation {
+  0% {
+      transform: translateY(0) scale(0.5); /* Начинает с меньшего размера */
+      opacity: 0; /* Прозрачный в начале */
+    }
+  20% {
+      opacity: 1; /* Постепенное появление */
+      transform: translateY(-20vh) scale(1); /* Пузырь увеличивается до обычного размера */
+    }
+  80% {
+      opacity: 1; /* Видимый в середине анимации */
+      transform: translateY(-80vh) scale(1.2); /* Немного увеличивается */
+    }
+  100% {
+      transform: translateY(-100vh) scale(1.5); /* Поднимается вверх и немного увеличивается */
+      opacity: 0; /* Исчезает в конце */
+    }
+}
+
+@media (max-width: 1055px) {
+  .container {
+      padding: 0 3vh;
+  }
+}

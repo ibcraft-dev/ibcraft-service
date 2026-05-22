@@ -1,7 +1,7 @@
 ﻿
-using ibcraftservice.Contracts;
+using ibcraft.API.Contracts;
 
-namespace ibcraftservice.Middlewares
+namespace ibcraft.API.Middlewares
 {
     public class ExceptionMidddleware : IMiddleware
     {
