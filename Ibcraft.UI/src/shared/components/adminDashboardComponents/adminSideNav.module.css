@@ -101,7 +101,8 @@
 }
 
 
-.sidebar li a {
+.sidebar li a,
+.logoutButton {
     height: 100%;
     width: 100%;
     display: flex;
@@ -111,7 +112,16 @@
     transition: .5s;
 }
 
-.sidebar li a:hover {
+.logoutButton {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
+    font: inherit;
+}
+
+.sidebar li a:hover,
+.logoutButton:hover {
     background: var(--buttonhovercolor);
 }
 

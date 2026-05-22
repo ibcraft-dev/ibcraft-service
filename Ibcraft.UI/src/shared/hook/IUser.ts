@@ -2,6 +2,7 @@ interface User {
     id?: string;
     name?: string;
     avatarIco?: string;
+    roles?: string[];
 }
 
 

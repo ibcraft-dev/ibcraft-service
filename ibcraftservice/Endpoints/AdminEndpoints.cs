@@ -9,7 +9,7 @@ namespace ibcraft.API.Endpoints;
 public static class AdminEndpoints
 {
     public const string AdminRole = "Admin";
-    private const string AdminCookieName = "ADMIN_ACCESS_TOKEN";
+    private const string AccessTokenCookieName = "ACCESS_TOKEN";
 
     public static IEndpointRouteBuilder MapAdminEndpoints(this IEndpointRouteBuilder builder)
     {
@@ -41,7 +41,7 @@ public static class AdminEndpoints
 
         var roles = await userManager.GetRolesAsync(user);
         var (jwtToken, expiresAtUtc) = authProvider.GenerateToken(user, roles);
-        authProvider.WriteAuthTokenAsHttpOnlyCookie(AdminCookieName, jwtToken, expiresAtUtc);
+        authProvider.WriteAuthTokenAsHttpOnlyCookie(AccessTokenCookieName, jwtToken, expiresAtUtc);
 
         return Results.Ok(new
         {
@@ -83,7 +83,7 @@ public static class AdminEndpoints
 
     private static IResult Logout(HttpContext context)
     {
-        context.Response.Cookies.Delete(AdminCookieName);
+        context.Response.Cookies.Delete(AccessTokenCookieName);
         return Results.Ok();
     }
 

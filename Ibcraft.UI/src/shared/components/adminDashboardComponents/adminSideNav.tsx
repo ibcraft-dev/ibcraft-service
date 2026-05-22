@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from "react";
 import style from "./adminSideNav.module.css";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import { fetchAdminLogout } from "@hooks/hookAdmin";
 
 
 export default function AdminSideNav() {
    const [closeBar, setCloseBar] = useState(false);
    const pathname = usePathname();
+   const router = useRouter();
 
    useEffect(() => {
     const savedState = localStorage.getItem('sidebarClosed');
@@ -28,6 +30,11 @@ export default function AdminSideNav() {
               chevron?.classList.toggle(style.active_chevron)
               setCloseBar(!closeBar);
          }
+   }
+
+   const handleLogout = async () => {
+        await fetchAdminLogout();
+        router.replace("/admin/login");
    }
 
    return <>
@@ -117,10 +124,10 @@ export default function AdminSideNav() {
                 </div>
                 <div className={style.bottom_content}>
                     <li className={style.nav_links}>
-                        <a href="#">
+                        <button type="button" className={style.logoutButton} onClick={handleLogout}>
                             <i className={`bx bx-log-out ${style.icon}`} ></i>
                             <span className={`${style.text} ${style.nav_text}`}>Выйти</span>
-                        </a>
+                        </button>
                     </li>
                     <li className={style.nav_links}>
                         <Link href="/">

@@ -81,8 +81,7 @@ namespace ibcraft.API.Extensions
                 {
                     OnMessageReceived = context =>
                     {
-                        context.Token = context.Request.Cookies["ADMIN_ACCESS_TOKEN"]
-                            ?? context.Request.Cookies["ACCESS_TOKEN"];
+                        context.Token = context.Request.Cookies["ACCESS_TOKEN"];
                         return Task.CompletedTask;
                     }
                 };

@@ -91,11 +91,14 @@ public static class AuthUserEndpoints
                 return Results.NotFound();
             }
 
+            var roles = await userManager.GetRolesAsync(user);
+
             return Results.Ok(new
             {
                 id = user.Id,
                 name = user.Nikname ?? user.UserName ?? user.Email,
-                avatarIco = user.UserAvatar
+                avatarIco = user.UserAvatar,
+                roles
             });
         }
 

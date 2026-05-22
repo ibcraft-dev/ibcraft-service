@@ -4,7 +4,7 @@ import { ChangeEvent, FormEvent, ReactNode, useEffect, useMemo, useState } from 
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Camera, CheckCircle2, Clock3, LogOut, PenLine, ShieldAlert, UserRound, XCircle } from "lucide-react";
+import { Camera, CheckCircle2, Clock3, Crown, LogOut, PenLine, ShieldAlert, UserRound, XCircle } from "lucide-react";
 
 import BubbleControler from "@components/EffectComponents/BubbleControler";
 import Loader from "@components/Loader";
@@ -86,6 +86,7 @@ function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User
     const avatarSrc = user.avatarIco
         ? `${process.env.NEXT_PUBLIC_SERVER_URL_HTTP}${user.avatarIco}`
         : null;
+    const isAdmin = user.roles?.includes("Admin") ?? false;
 
     useEffect(() => {
         return () => {
@@ -187,7 +188,14 @@ function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User
 
                         <div className={style.identity}>
                             <span className={style.kicker}>Личный кабинет</span>
-                            <h1>{user.name || "Игрок IB Craft"}</h1>
+                            <div className={style.nameRow}>
+                                <h1>{user.name || "Игрок IB Craft"}</h1>
+                                {isAdmin ? (
+                                    <span className={style.adminBadge} title="Администратор">
+                                        <Crown size={19} />
+                                    </span>
+                                ) : null}
+                            </div>
                             <p>{user.id ? `ID: ${user.id}` : "Профиль привязан к Google-аккаунту"}</p>
                         </div>
 
@@ -226,6 +234,10 @@ function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User
                             <div className={style.infoRow}>
                                 <span>Аватар</span>
                                 <strong>{user.avatarIco ? "Загружен" : "Стандартный"}</strong>
+                            </div>
+                            <div className={style.infoRow}>
+                                <span>Роль</span>
+                                <strong>{isAdmin ? "Admin" : "Player"}</strong>
                             </div>
                         </section>
                     </div>
