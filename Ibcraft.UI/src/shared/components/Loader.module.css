@@ -1,14 +1,24 @@
 .container {
-    position: relative;
-    margin: 0;
-    padding: 0;
+    position: fixed;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 100vh;
-    z-index: 999;
+    width: 100%;
+    height: 100svh;
+    min-height: 100svh;
+    z-index: 9999;
     background-color: #13061E;
     transition: 0.5s;
+    box-sizing: border-box;
+}
+
+.compact {
+    position: relative;
+    inset: auto;
+    height: 320px;
+    min-height: 320px;
+    z-index: 1;
 }
 
 
@@ -66,4 +76,11 @@
     bottom: 10px;
     background-color: #13061E;
     border-radius: 50%;
+}
+
+@media (max-width: 900px) {
+    .compact {
+        height: 260px;
+        min-height: 260px;
+    }
 }

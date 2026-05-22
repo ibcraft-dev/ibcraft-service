@@ -24,11 +24,11 @@ export default function ProtectedForm({children, userId} : {children: ReactNode,
 
     }, [status])
 
-    if (statusForm === undefined) return <div><Loader /></div>
+    if (statusForm === undefined) return <div><Loader compact /></div>
 
     return (
         <>
-            {statusForm ? children : <div><Loader /></div>}
+            {statusForm ? children : <div><Loader compact /></div>}
         </>
     )
 }
