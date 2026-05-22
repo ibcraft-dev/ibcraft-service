@@ -14,6 +14,7 @@ namespace ibcraft.API.Extensions
         public static void AddMappedEndpoints(this IEndpointRouteBuilder app)
         {
             app.MapGroup("api").MapAuthUserEndpoints();
+            app.MapGroup("api").MapAdminEndpoints();
             app.MapGroup("api").MapQuestionnaireEndpoints();
         }
 
@@ -80,14 +81,18 @@ namespace ibcraft.API.Extensions
                 {
                     OnMessageReceived = context =>
                     {
-                        context.Token = context.Request.Cookies["ACCESS_TOKEN"];
+                        context.Token = context.Request.Cookies["ADMIN_ACCESS_TOKEN"]
+                            ?? context.Request.Cookies["ACCESS_TOKEN"];
                         return Task.CompletedTask;
                     }
                 };
             });
 
             
-            services.AddAuthorization();
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+            });
         }
     }
 }

@@ -22,7 +22,7 @@ namespace Ibcraft.Infrastructure
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public (string jwtToken, DateTime expiresAtUtc) GenerateToken(UserEntity user)
+        public (string jwtToken, DateTime expiresAtUtc) GenerateToken(UserEntity user, IEnumerable<string>? roles = null)
         {
             var signingKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(_authOption.SecretKey));
@@ -31,13 +31,18 @@ namespace Ibcraft.Infrastructure
                 signingKey,
                 SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, user.Nikname ?? ""),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
             };
+
+            foreach (var role in roles ?? [])
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
             var expires = DateTime.UtcNow.AddMinutes(_authOption.ExpiresHours);
 

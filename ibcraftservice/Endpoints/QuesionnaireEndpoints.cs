@@ -12,12 +12,12 @@ namespace ibcraft.API.Endpoints
             var endpoints = builder.MapGroup("/questionnaire/").RequireAuthorization();
 
             endpoints.MapPost("create", AddQuesionnaire);
-            endpoints.MapGet("getall", GetAll);
+            endpoints.MapGet("getall", GetAll).RequireAuthorization("AdminOnly");
             endpoints.MapGet("{id:guid}/status", Status);
             endpoints.MapGet("{id:guid}/view", GetView);
-            endpoints.MapPut("{id:guid}/approved", ApprovedUpdate);
-            endpoints.MapPut("{id:guid}/reject", RejectUpdate);
-            endpoints.MapDelete("{id:guid}/delete", Delete);
+            endpoints.MapPut("{id:guid}/approved", ApprovedUpdate).RequireAuthorization("AdminOnly");
+            endpoints.MapPut("{id:guid}/reject", RejectUpdate).RequireAuthorization("AdminOnly");
+            endpoints.MapDelete("{id:guid}/delete", Delete).RequireAuthorization("AdminOnly");
 
             return builder;
         }

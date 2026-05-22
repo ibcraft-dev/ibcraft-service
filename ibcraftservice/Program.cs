@@ -108,4 +108,7 @@ app.AddMappedEndpoints();
 if (args.Contains("--migrate"))
     app.ApplyMigrations();
 
+if (await app.TryCreateAdminFromArgsAsync(args))
+    return;
+
 app.Run();

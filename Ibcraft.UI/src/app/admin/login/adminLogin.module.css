@@ -1,0 +1,97 @@
+.page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background:
+        radial-gradient(circle at 50% 28%, rgba(135, 0, 255, 0.2), transparent 34%),
+        #13061E;
+    color: #fff;
+}
+
+.panel {
+    width: min(420px, 100%);
+    padding: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(25, 8, 38, 0.96);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+}
+
+.header {
+    margin-bottom: 24px;
+}
+
+.header span {
+    display: block;
+    margin-bottom: 8px;
+    color: #9ee7d0;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 30px;
+    line-height: 1.1;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.field label {
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.field input {
+    height: 46px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    outline: none;
+    padding: 0 14px;
+    background: #210B34;
+    color: #fff;
+    font-size: 16px;
+}
+
+.field input:focus {
+    border-color: rgba(151, 71, 255, 0.8);
+}
+
+.message {
+    margin: 0;
+    color: #ffb3c1;
+    font-weight: 800;
+}
+
+.button {
+    height: 46px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--buttonscolor);
+    color: #fff;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 900;
+    transition: background-color .2s ease, opacity .2s ease;
+}
+
+.button:hover {
+    background: var(--buttonhovercolor);
+}
+
+.button:disabled {
+    opacity: .65;
+    cursor: default;
+}
