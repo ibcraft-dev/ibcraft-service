@@ -1,6 +1,16 @@
 "use client";
 
-import { MoreVertical, Pencil, Search, Shield, UserRound } from "lucide-react";
+import {
+    Ban,
+    ChevronLeft,
+    ChevronRight,
+    MoreVertical,
+    Pencil,
+    Search,
+    Shield,
+    Trash2,
+    UserRound,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
     AdminManagedUser,
@@ -36,6 +46,8 @@ export default function AdminUsers() {
     const [selectedUser, setSelectedUser] = useState<AdminManagedUser | null>(null);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [search, setSearch] = useState("");
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState("Демо-данные, пока API недоступен.");
     const menuRef = useRef<HTMLDivElement>(null);
@@ -50,6 +62,10 @@ export default function AdminUsers() {
         document.addEventListener("click", handleClickOutside);
         return () => document.removeEventListener("click", handleClickOutside);
     }, []);
+
+    useEffect(() => {
+        setPage(1);
+    }, [search, pageSize]);
 
     useEffect(() => {
         const timeoutId = window.setTimeout(async () => {
@@ -80,11 +96,21 @@ export default function AdminUsers() {
         [users]
     );
 
+    const pageCount = Math.max(1, Math.ceil(users.length / pageSize));
+    const visibleUsers = users.slice((page - 1) * pageSize, page * pageSize);
+    const firstVisible = users.length ? (page - 1) * pageSize + 1 : 0;
+    const lastVisible = Math.min(page * pageSize, users.length);
+
     const handleUserUpdate = (updatedUser: AdminManagedUser) => {
         setUsers((currentUsers) =>
             currentUsers.map((user) => (user.id === updatedUser.id ? updatedUser : user))
         );
         setSelectedUser(updatedUser);
+    };
+
+    const handleUnavailableAction = (action: string, username: string) => {
+        setOpenMenuId(null);
+        setMessage(`${action} для ${username}: действие пока не подключено к API.`);
     };
 
     return (
@@ -123,7 +149,7 @@ export default function AdminUsers() {
                 </div>
 
                 <div className={style.usersList} ref={menuRef}>
-                    {users.map((user) => (
+                    {visibleUsers.map((user) => (
                         <article className={style.userRow} key={user.id}>
                             <button
                                 className={style.userMain}
@@ -176,6 +202,25 @@ export default function AdminUsers() {
                                             <Pencil size={16} />
                                             Изменить
                                         </button>
+                                        {user.role.toLowerCase() !== "admin" && (
+                                            <>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleUnavailableAction("Бан", user.username)}
+                                                >
+                                                    <Ban size={16} />
+                                                    Забанить
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className={style.dangerAction}
+                                                    onClick={() => handleUnavailableAction("Удаление", user.username)}
+                                                >
+                                                    <Trash2 size={16} />
+                                                    Удалить
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -187,6 +232,46 @@ export default function AdminUsers() {
                             <Search size={32} />
                             <p>Пользователи по такому нику не найдены.</p>
                         </div>
+                    )}
+
+                    {!!users.length && (
+                        <footer className={style.usersFooter}>
+                            <span>
+                                {firstVisible}-{lastVisible} из {users.length}
+                            </span>
+
+                            <label className={style.pageSizeSelect}>
+                                На странице
+                                <select
+                                    value={pageSize}
+                                    onChange={(event) => setPageSize(Number(event.target.value))}
+                                >
+                                    <option value={10}>10</option>
+                                    <option value={20}>20</option>
+                                    <option value={30}>30</option>
+                                </select>
+                            </label>
+
+                            <div className={style.paginationControls}>
+                                <button
+                                    type="button"
+                                    onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
+                                    disabled={page === 1}
+                                    aria-label="Предыдущая страница"
+                                >
+                                    <ChevronLeft size={18} />
+                                </button>
+                                <strong>{page} из {pageCount}</strong>
+                                <button
+                                    type="button"
+                                    onClick={() => setPage((currentPage) => Math.min(pageCount, currentPage + 1))}
+                                    disabled={page === pageCount}
+                                    aria-label="Следующая страница"
+                                >
+                                    <ChevronRight size={18} />
+                                </button>
+                            </div>
+                        </footer>
                     )}
                 </div>
             </section>

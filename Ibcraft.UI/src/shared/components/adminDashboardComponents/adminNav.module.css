@@ -536,6 +536,14 @@
     background: rgba(151, 71, 255, 0.2);
 }
 
+.actionMenu .dangerAction {
+    color: #ff8fa3;
+}
+
+.actionMenu .dangerAction:hover {
+    background: rgba(255, 80, 110, 0.14);
+}
+
 .emptyState {
     display: flex;
     min-height: 250px;
@@ -544,6 +552,72 @@
     justify-content: center;
     gap: 12px;
     color: rgba(255, 255, 255, 0.62);
+    text-align: center;
+}
+
+.usersFooter {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-top: auto;
+    padding: 16px 14px 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.64);
+    font-size: 14px;
+}
+
+.pageSizeSelect {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-weight: 800;
+}
+
+.pageSizeSelect select {
+    height: 36px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    outline: none;
+    padding: 0 28px 0 10px;
+    background: #210b34;
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+}
+
+.paginationControls {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.paginationControls button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    cursor: pointer;
+    transition: background-color .2s ease, opacity .2s ease;
+}
+
+.paginationControls button:hover {
+    background: var(--buttonhovercolor);
+}
+
+.paginationControls button:disabled {
+    opacity: .42;
+    cursor: default;
+}
+
+.paginationControls strong {
+    min-width: 58px;
+    color: #fff;
     text-align: center;
 }
 
@@ -605,5 +679,17 @@
 
     .actionMenu {
         right: 0;
+    }
+
+    .usersFooter {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .pageSizeSelect,
+    .paginationControls {
+        justify-content: space-between;
+        width: 100%;
     }
 }

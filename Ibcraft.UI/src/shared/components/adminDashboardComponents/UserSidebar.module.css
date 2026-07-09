@@ -16,13 +16,28 @@
     width: min(560px, 100%);
     height: 100%;
     overflow-y: auto;
-    padding: 24px;
+    scrollbar-gutter: stable;
+    padding: 24px 24px 96px;
     border-left: 1px solid rgba(255, 255, 255, 0.12);
     background:
         linear-gradient(135deg, rgba(124, 58, 237, 0.16), rgba(32, 196, 151, 0.05)),
         #13061e;
     color: #fff;
     box-shadow: -22px 0 60px rgba(0, 0, 0, 0.38);
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 10px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    border-radius: 999px;
+    background: rgba(19, 6, 30, 0.9);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--buttonscolor), var(--openelementcolor));
 }
 
 .closeBtn {
@@ -217,7 +232,7 @@
 
     .sidebar {
         width: 100%;
-        padding: 18px;
+        padding: 18px 18px 104px;
     }
 
     .sidebarHeader {
