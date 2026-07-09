@@ -8,6 +8,23 @@ type AdminUser = {
     roles: string[];
 };
 
+type AdminManagedUser = {
+    id: string;
+    username: string;
+    email: string;
+    createdAt: string;
+    emailVerified: boolean;
+    role: string;
+    roles: string[];
+};
+
+type AdminUpdateUserPayload = {
+    nickname: string;
+    email: string;
+    emailConfirmed: boolean;
+    role: string;
+};
+
 const fetchAdminMe = async () => {
     try {
         const response = await api.get<AdminUser>("/api/admin/me");
@@ -50,5 +67,59 @@ const fetchAdminLogout = async () => {
     }
 };
 
-export type { AdminUser };
-export { fetchAdminLogin, fetchAdminLogout, fetchAdminMe };
+const fetchAdminUsers = async (search?: string) => {
+    try {
+        const response = await api.get<AdminManagedUser[]>("/api/admin/users", {
+            params: search ? { search } : undefined,
+        });
+        return { data: response.data, status: response.status };
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            return { data: null, status: error.response.status };
+        }
+
+        console.error("Admin users fetch failed:", error);
+        return { data: null, status: 500 };
+    }
+};
+
+const updateAdminUser = async (id: string, payload: AdminUpdateUserPayload) => {
+    try {
+        const response = await api.put<AdminManagedUser>(`/api/admin/users/${id}`, payload);
+        return { data: response.data, status: response.status };
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            return { data: null, status: error.response.status };
+        }
+
+        console.error("Admin user update failed:", error);
+        return { data: null, status: 500 };
+    }
+};
+
+const updateAdminUserPassword = async (id: string, password: string, confirmPassword: string) => {
+    try {
+        const response = await api.patch(`/api/admin/users/${id}/password`, {
+            password,
+            confirmPassword,
+        });
+        return { data: response.data, status: response.status };
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            return { data: null, status: error.response.status };
+        }
+
+        console.error("Admin user password update failed:", error);
+        return { data: null, status: 500 };
+    }
+};
+
+export type { AdminManagedUser, AdminUpdateUserPayload, AdminUser };
+export {
+    fetchAdminLogin,
+    fetchAdminLogout,
+    fetchAdminMe,
+    fetchAdminUsers,
+    updateAdminUser,
+    updateAdminUserPassword,
+};
