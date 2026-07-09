@@ -80,6 +80,7 @@ namespace Ibcraft.Infrastructure
                         HttpOnly = true,
                         Expires = expiration,
                         IsEssential = true,
+                        Path = "/",
                         Secure = isHttps,
                         SameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax
                     });

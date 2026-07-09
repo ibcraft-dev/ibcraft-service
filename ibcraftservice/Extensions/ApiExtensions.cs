@@ -34,9 +34,13 @@ namespace ibcraft.API.Extensions
             services.Configure<AuthOption>(configuration.GetSection(nameof(AuthOption)));
 
             var jwtOptions = configuration.GetSection(nameof(AuthOption)).Get<AuthOption>();
-            var secureCookiePolicy = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == Environments.Development
+            var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == Environments.Development;
+            var secureCookiePolicy = isDevelopment
                 ? CookieSecurePolicy.SameAsRequest
                 : CookieSecurePolicy.Always;
+            var oauthSameSite = isDevelopment
+                ? SameSiteMode.Lax
+                : SameSiteMode.None;
 
             services.AddAuthentication(opt =>
                 {
@@ -44,7 +48,11 @@ namespace ibcraft.API.Extensions
                 opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 opt.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            .AddCookie("External")
+            .AddCookie("External", options =>
+            {
+                options.Cookie.SameSite = oauthSameSite;
+                options.Cookie.SecurePolicy = secureCookiePolicy;
+            })
             .AddGoogle(options =>
             {
                 var clientId = configuration["Authentication:Google:ClientId"];
@@ -64,7 +72,7 @@ namespace ibcraft.API.Extensions
                 options.ClientSecret = clientSecret;
                 options.SignInScheme = "External";
 
-                options.CorrelationCookie.SameSite = SameSiteMode.None;
+                options.CorrelationCookie.SameSite = oauthSameSite;
                 options.CorrelationCookie.SecurePolicy = secureCookiePolicy;
 
             })
@@ -99,7 +107,7 @@ namespace ibcraft.API.Extensions
                 options.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
                 options.ClaimActions.MapJsonKey("urn:discord:avatar", "avatar");
 
-                options.CorrelationCookie.SameSite = SameSiteMode.None;
+                options.CorrelationCookie.SameSite = oauthSameSite;
                 options.CorrelationCookie.SecurePolicy = secureCookiePolicy;
 
                 options.Events = new OAuthEvents

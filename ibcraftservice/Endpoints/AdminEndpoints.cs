@@ -89,8 +89,31 @@ public static class AdminEndpoints
 
     private static IResult Logout(HttpContext context)
     {
-        context.Response.Cookies.Delete(AccessTokenCookieName);
+        DeleteAuthCookies(context);
         return Results.Ok();
+    }
+
+    private static void DeleteAuthCookies(HttpContext context)
+    {
+        var isHttps = context.Request.IsHttps;
+        var options = new CookieOptions
+        {
+            Secure = isHttps,
+            SameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax
+        };
+
+        foreach (var cookieName in new[] { AccessTokenCookieName, "REFRESH_TOKEN" })
+        {
+            foreach (var path in new[] { "/", "/api/auth", "/api/admin" })
+            {
+                context.Response.Cookies.Delete(cookieName, new CookieOptions
+                {
+                    Path = path,
+                    Secure = options.Secure,
+                    SameSite = options.SameSite
+                });
+            }
+        }
     }
 
     private static async Task<IResult> Users(

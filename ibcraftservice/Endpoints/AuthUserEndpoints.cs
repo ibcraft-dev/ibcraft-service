@@ -193,8 +193,27 @@ public static class AuthUserEndpoints
 
         private static IResult Logout(HttpContext context)
         {
-            context.Response.Cookies.Delete("ACCESS_TOKEN");
+            DeleteAuthCookies(context);
             return Results.Ok();
+        }
+
+        private static void DeleteAuthCookies(HttpContext context)
+        {
+            var isHttps = context.Request.IsHttps;
+            var sameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax;
+
+            foreach (var cookieName in new[] { "ACCESS_TOKEN", "REFRESH_TOKEN" })
+            {
+                foreach (var path in new[] { "/", "/api/auth", "/api/admin" })
+                {
+                    context.Response.Cookies.Delete(cookieName, new CookieOptions
+                    {
+                        Path = path,
+                        Secure = isHttps,
+                        SameSite = sameSite
+                    });
+                }
+            }
         }
 
         private static async Task<IResult> GetMe(
