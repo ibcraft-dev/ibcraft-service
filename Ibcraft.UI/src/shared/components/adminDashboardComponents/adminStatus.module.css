@@ -3,6 +3,7 @@
     flex-direction: column;
     gap: 22px;
     width: min(1240px, calc(100% - 48px));
+    min-width: 0;
     margin: 0 auto;
     padding: 28px 0 70px;
     color: #fff;
@@ -117,10 +118,12 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(260px, 0.32fr);
     gap: 22px;
+    min-width: 0;
 }
 
 .chartPanel,
 .summaryPanel {
+    min-width: 0;
     padding: 24px;
 }
 
@@ -180,6 +183,9 @@
 }
 
 .chartScroll {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     overflow-x: auto;
     overflow-y: visible;
     padding: 18px 2px 4px;
@@ -336,7 +342,7 @@
 
 @media (max-width: 860px) {
     .dashboard {
-        width: min(100% - 24px, 720px);
+        width: 100%;
         padding-top: 18px;
     }
 
@@ -388,7 +394,7 @@
     }
 
     .chart {
-        min-width: 660px;
+        min-width: 520px;
         height: 280px;
         gap: 8px;
     }
