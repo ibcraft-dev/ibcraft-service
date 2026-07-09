@@ -216,13 +216,15 @@ public static class AuthUserEndpoints
             }
 
             var roles = await userManager.GetRolesAsync(user);
+            var isBanned = user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow;
 
             return Results.Ok(new
             {
                 id = user.Id,
                 name = user.Nikname ?? user.UserName ?? user.Email,
                 avatarIco = user.UserAvatar,
-                roles
+                roles,
+                isBanned
             });
         }
 

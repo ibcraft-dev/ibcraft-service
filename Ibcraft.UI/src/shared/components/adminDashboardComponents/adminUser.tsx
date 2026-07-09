@@ -14,7 +14,9 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
     AdminManagedUser,
+    deleteAdminUser,
     fetchAdminUsers,
+    toggleAdminUserBan,
 } from "@hooks/hookAdmin";
 import AdminContainer from "./adminContainer";
 import AdminSideBarUser from "./adminSideBarUser";
@@ -29,6 +31,7 @@ const demoUsers: AdminManagedUser[] = [
         email: "admin@mail.com",
         createdAt: "2023-10-01T12:00:00Z",
         emailVerified: true,
+        isBanned: false,
     },
     {
         id: "demo-user",
@@ -38,6 +41,7 @@ const demoUsers: AdminManagedUser[] = [
         email: "foxgay@mail.com",
         createdAt: "2023-09-01T13:00:00Z",
         emailVerified: true,
+        isBanned: false,
     },
 ];
 
@@ -108,9 +112,43 @@ export default function AdminUsers() {
         setSelectedUser(updatedUser);
     };
 
-    const handleUnavailableAction = (action: string, username: string) => {
+    const handleBanToggle = async (user: AdminManagedUser) => {
         setOpenMenuId(null);
-        setMessage(`${action} для ${username}: действие пока не подключено к API.`);
+        const nextBannedState = !user.isBanned;
+        const response = await toggleAdminUserBan(user.id, nextBannedState);
+
+        if (response.data) {
+            setUsers((currentUsers) =>
+                currentUsers.map((currentUser) =>
+                    currentUser.id === user.id ? response.data : currentUser
+                )
+            );
+            setMessage(nextBannedState ? `${user.username} забанен.` : `${user.username} разбанен.`);
+            return;
+        }
+
+        setMessage("Не удалось изменить бан. Проверь API или права администратора.");
+    };
+
+    const handleDelete = async (user: AdminManagedUser) => {
+        setOpenMenuId(null);
+
+        if (!window.confirm(`Удалить пользователя ${user.username}?`)) {
+            return;
+        }
+
+        const response = await deleteAdminUser(user.id);
+
+        if (response.status >= 200 && response.status < 300) {
+            setUsers((currentUsers) => currentUsers.filter((currentUser) => currentUser.id !== user.id));
+            setMessage(`${user.username} удален.`);
+            if (selectedUser?.id === user.id) {
+                setSelectedUser(null);
+            }
+            return;
+        }
+
+        setMessage("Не удалось удалить пользователя. Проверь API или права администратора.");
     };
 
     return (
@@ -175,6 +213,7 @@ export default function AdminUsers() {
                                 <span className={user.emailVerified ? style.verified : style.unverified}>
                                     {user.emailVerified ? "Email подтвержден" : "Email не подтвержден"}
                                 </span>
+                                {user.isBanned && <span className={style.banned}>Забанен</span>}
                             </div>
 
                             <div className={style.actionCell}>
@@ -204,17 +243,14 @@ export default function AdminUsers() {
                                         </button>
                                         {user.role.toLowerCase() !== "admin" && (
                                             <>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleUnavailableAction("Бан", user.username)}
-                                                >
+                                                <button type="button" onClick={() => handleBanToggle(user)}>
                                                     <Ban size={16} />
-                                                    Забанить
+                                                    {user.isBanned ? "Разбанить" : "Забанить"}
                                                 </button>
                                                 <button
                                                     type="button"
                                                     className={style.dangerAction}
-                                                    onClick={() => handleUnavailableAction("Удаление", user.username)}
+                                                    onClick={() => handleDelete(user)}
                                                 >
                                                     <Trash2 size={16} />
                                                     Удалить

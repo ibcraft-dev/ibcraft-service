@@ -22,6 +22,8 @@ public static class AdminEndpoints
         group.MapGet("users", Users).RequireAuthorization("AdminOnly");
         group.MapPut("users/{id:guid}", UpdateUser).RequireAuthorization("AdminOnly");
         group.MapPatch("users/{id:guid}/password", UpdateUserPassword).RequireAuthorization("AdminOnly");
+        group.MapPatch("users/{id:guid}/ban", ToggleUserBan).RequireAuthorization("AdminOnly");
+        group.MapDelete("users/{id:guid}", DeleteUser).RequireAuthorization("AdminOnly");
 
         return builder;
     }
@@ -230,8 +232,65 @@ public static class AdminEndpoints
         return Results.Ok();
     }
 
+    private static async Task<IResult> ToggleUserBan(
+        Guid id,
+        [FromBody] AdminBanUserRequest request,
+        [FromServices] UserManager<UserEntity> userManager)
+    {
+        var user = await userManager.FindByIdAsync(id.ToString());
+
+        if (user is null)
+        {
+            return Results.NotFound();
+        }
+
+        if (await userManager.IsInRoleAsync(user, AdminRole))
+        {
+            return Results.BadRequest(new { message = "Admin users cannot be banned." });
+        }
+
+        user.LockoutEnabled = true;
+        user.LockoutEnd = request.IsBanned ? DateTimeOffset.MaxValue : null;
+
+        var updateResult = await userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            return Results.BadRequest(new { errors = updateResult.Errors.Select(error => error.Description) });
+        }
+
+        var roles = await userManager.GetRolesAsync(user);
+        return Results.Ok(ToAdminUserResponse(user, roles));
+    }
+
+    private static async Task<IResult> DeleteUser(
+        Guid id,
+        [FromServices] UserManager<UserEntity> userManager)
+    {
+        var user = await userManager.FindByIdAsync(id.ToString());
+
+        if (user is null)
+        {
+            return Results.NotFound();
+        }
+
+        if (await userManager.IsInRoleAsync(user, AdminRole))
+        {
+            return Results.BadRequest(new { message = "Admin users cannot be deleted." });
+        }
+
+        var deleteResult = await userManager.DeleteAsync(user);
+        if (!deleteResult.Succeeded)
+        {
+            return Results.BadRequest(new { errors = deleteResult.Errors.Select(error => error.Description) });
+        }
+
+        return Results.Ok();
+    }
+
     private static object ToAdminUserResponse(UserEntity user, IList<string> roles)
     {
+        var isBanned = user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow;
+
         return new
         {
             id = user.Id,
@@ -240,11 +299,13 @@ public static class AdminEndpoints
             createdAt = user.Created_at,
             emailVerified = user.EmailConfirmed,
             role = roles.FirstOrDefault() ?? "User",
-            roles
+            roles,
+            isBanned
         };
     }
 
     private record AdminLoginRequest(string Email, string Password);
     private record AdminUpdateUserRequest(string Nickname, string Email, bool EmailConfirmed, string Role);
     private record AdminUpdatePasswordRequest(string Password, string ConfirmPassword);
+    private record AdminBanUserRequest(bool IsBanned);
 }

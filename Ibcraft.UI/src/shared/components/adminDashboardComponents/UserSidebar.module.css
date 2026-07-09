@@ -17,7 +17,7 @@
     height: 100%;
     overflow-y: auto;
     scrollbar-gutter: stable;
-    padding: 24px 24px 96px;
+    padding: 24px 24px calc(160px + env(safe-area-inset-bottom));
     border-left: 1px solid rgba(255, 255, 255, 0.12);
     background:
         linear-gradient(135deg, rgba(124, 58, 237, 0.16), rgba(32, 196, 151, 0.05)),
@@ -232,7 +232,7 @@
 
     .sidebar {
         width: 100%;
-        padding: 18px 18px 104px;
+        padding: 18px 18px calc(170px + env(safe-area-inset-bottom));
     }
 
     .sidebarHeader {

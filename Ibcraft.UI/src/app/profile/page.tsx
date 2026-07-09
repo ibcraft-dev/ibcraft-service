@@ -71,6 +71,16 @@ function getProfileStatus(status: string | null): ProfileStatus {
     }
 }
 
+function getBannedProfileStatus(): ProfileStatus {
+    return {
+        title: "Вы забанены",
+        text: "Доступ к серверу ограничен администрацией. Если это ошибка, обратитесь к администрации.",
+        tone: style.rejected,
+        icon: <ShieldAlert size={28} />,
+        canApply: false,
+    };
+}
+
 function needsNickname(user: User) {
     const name = user.name?.trim();
 
@@ -83,7 +93,10 @@ function needsNickname(user: User) {
 function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User | null) => void }) {
     const router = useRouter();
     const status = useStatus(user.id ?? "");
-    const profileStatus = useMemo(() => getProfileStatus(status), [status]);
+    const profileStatus = useMemo(
+        () => user.isBanned ? getBannedProfileStatus() : getProfileStatus(status),
+        [status, user.isBanned]
+    );
     const [isNameModalOpen, setIsNameModalOpen] = useState(false);
     const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);

@@ -16,6 +16,7 @@ type AdminManagedUser = {
     emailVerified: boolean;
     role: string;
     roles: string[];
+    isBanned: boolean;
 };
 
 type AdminUpdateUserPayload = {
@@ -114,12 +115,44 @@ const updateAdminUserPassword = async (id: string, password: string, confirmPass
     }
 };
 
+const toggleAdminUserBan = async (id: string, isBanned: boolean) => {
+    try {
+        const response = await api.patch<AdminManagedUser>(`/api/admin/users/${id}/ban`, {
+            isBanned,
+        });
+        return { data: response.data, status: response.status };
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            return { data: null, status: error.response.status };
+        }
+
+        console.error("Admin user ban toggle failed:", error);
+        return { data: null, status: 500 };
+    }
+};
+
+const deleteAdminUser = async (id: string) => {
+    try {
+        const response = await api.delete(`/api/admin/users/${id}`);
+        return { data: response.data, status: response.status };
+    } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+            return { data: null, status: error.response.status };
+        }
+
+        console.error("Admin user delete failed:", error);
+        return { data: null, status: 500 };
+    }
+};
+
 export type { AdminManagedUser, AdminUpdateUserPayload, AdminUser };
 export {
+    deleteAdminUser,
     fetchAdminLogin,
     fetchAdminLogout,
     fetchAdminMe,
     fetchAdminUsers,
+    toggleAdminUserBan,
     updateAdminUser,
     updateAdminUserPassword,
 };
