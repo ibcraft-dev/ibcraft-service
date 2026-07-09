@@ -51,7 +51,8 @@ namespace Ibcraft.Application.Service
                 throw new LoginFailedException(loginRequest.Nikname);
             }
 
-            var (jwtToken, expiresAtUtc) = _authProvider.GenerateToken(user);
+            var roles = await _userManager.GetRolesAsync(user);
+            var (jwtToken, expiresAtUtc) = _authProvider.GenerateToken(user, roles);
             var refreshToken = _authProvider.GenerateRefreshToken();
 
             var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
@@ -84,7 +85,8 @@ namespace Ibcraft.Application.Service
                 throw new RefreshTokenException("Refresh token is expired.");
             }
             
-            var (jwtToken, expirationDateInUtc) = _authProvider.GenerateToken(user);
+            var roles = await _userManager.GetRolesAsync(user);
+            var (jwtToken, expirationDateInUtc) = _authProvider.GenerateToken(user, roles);
             var refreshTokenValue = _authProvider.GenerateRefreshToken();
 
             var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
@@ -240,7 +242,8 @@ namespace Ibcraft.Application.Service
         
         private async Task SignInUserAsync(UserEntity user)
         {
-            var (jwtToken, expirationDateInUtc) = _authProvider.GenerateToken(user);
+            var roles = await _userManager.GetRolesAsync(user);
+            var (jwtToken, expirationDateInUtc) = _authProvider.GenerateToken(user, roles);
 
             var refreshToken = _authProvider.GenerateRefreshToken();
             var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);

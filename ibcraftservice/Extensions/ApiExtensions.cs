@@ -158,7 +158,7 @@ namespace ibcraft.API.Extensions
             
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+                options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin", "Moderator"));
             });
         }
     }

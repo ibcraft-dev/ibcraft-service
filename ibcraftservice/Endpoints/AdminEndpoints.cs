@@ -10,6 +10,7 @@ namespace ibcraft.API.Endpoints;
 public static class AdminEndpoints
 {
     public const string AdminRole = "Admin";
+    public const string ModeratorRole = "Moderator";
     private const string AccessTokenCookieName = "ACCESS_TOKEN";
 
     public static IEndpointRouteBuilder MapAdminEndpoints(this IEndpointRouteBuilder builder)
@@ -40,7 +41,8 @@ public static class AdminEndpoints
             return Results.Unauthorized();
         }
 
-        if (!await userManager.IsInRoleAsync(user, AdminRole))
+        if (!await userManager.IsInRoleAsync(user, AdminRole) &&
+            !await userManager.IsInRoleAsync(user, ModeratorRole))
         {
             return Results.Forbid();
         }

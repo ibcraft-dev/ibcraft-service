@@ -26,8 +26,13 @@ export default function AdminLayout({ children } : Readonly<{children: React.Rea
         const checkAdmin = async () => {
             const response = await fetchAdminMe();
 
-            if (response.status !== 200) {
+            if (response.status === 401) {
                 router.replace("/admin/login");
+                return;
+            }
+
+            if (response.status !== 200) {
+                router.replace("/");
                 return;
             }
 

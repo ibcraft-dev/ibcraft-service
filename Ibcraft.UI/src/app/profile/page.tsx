@@ -111,6 +111,12 @@ function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User
         ? `${process.env.NEXT_PUBLIC_SERVER_URL_HTTP}${user.avatarIco}`
         : null;
     const isAdmin = user.roles?.includes("Admin") ?? false;
+    const isModerator = user.roles?.includes("Moderator") ?? false;
+    const userRoleLabel = isAdmin
+        ? "Админ"
+        : isModerator
+            ? "Модератор"
+            : "Обычный пользователь";
 
     useEffect(() => {
         return () => {
@@ -135,7 +141,7 @@ function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User
     const handleLogout = async () => {
         await fetchLogout();
         onUserChange(null);
-        router.replace("/auth");
+        router.replace("/");
     };
 
     const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -264,12 +270,12 @@ function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User
                                 <strong>{displayName || "Не задано"}</strong>
                             </div>
                             <div className={style.infoRow}>
-                                <span>Аватар</span>
-                                <strong>{user.avatarIco ? "Загружен" : "Стандартный"}</strong>
+                                <span>Роль</span>
+                                <strong>{userRoleLabel}</strong>
                             </div>
                             <div className={style.infoRow}>
-                                <span>Роль</span>
-                                <strong>{isAdmin ? "Admin" : "Player"}</strong>
+                                <span>Статус</span>
+                                <strong>{user.isBanned ? "Забанен" : "Активен"}</strong>
                             </div>
                         </section>
                     </div>
