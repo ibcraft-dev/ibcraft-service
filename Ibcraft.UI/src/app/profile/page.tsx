@@ -9,7 +9,7 @@ import { Camera, CheckCircle2, Clock3, Crown, LogOut, PenLine, ShieldAlert, User
 import BubbleControler from "@components/EffectComponents/BubbleControler";
 import Loader from "@components/Loader";
 import Modal from "@components/Modal";
-import { fetchLogout, fetchUpdateNikname, fetchUpdateUserAvatar, fetchUser } from "@hooks/hookUser";
+import { fetchLogout, fetchUpdateNikname, fetchUpdateUserAvatar, fetchUser, needsMinecraftNickname } from "@hooks/hookUser";
 import { User } from "@hooks/IUser";
 import { useStatus } from "@hooks/useStatus";
 import icouser from "@static/GkSrQGFXUAA0Ar_.png";
@@ -81,15 +81,6 @@ function getBannedProfileStatus(): ProfileStatus {
     };
 }
 
-function needsNickname(user: User) {
-    const name = user.name?.trim();
-
-    return !name ||
-        /^telegram_.+@external\.ibcraft\.local$/i.test(name) ||
-        /^discord_.+@external\.ibcraft\.local$/i.test(name) ||
-        /^google_.+@external\.ibcraft\.local$/i.test(name);
-}
-
 function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User | null) => void }) {
     const router = useRouter();
     const status = useStatus(user.id ?? "");
@@ -104,7 +95,7 @@ function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User
     const [preview, setPreview] = useState<string | null>(null);
     const [file, setFile] = useState<File | null>(null);
     const [message, setMessage] = useState<string | null>(null);
-    const mustSetNickname = needsNickname(user);
+    const mustSetNickname = needsMinecraftNickname(user);
     const displayName = mustSetNickname ? "Нужно задать никнейм" : user.name;
 
     const avatarSrc = user.avatarIco
@@ -326,6 +317,11 @@ export default function ProfilePage() {
 
             if (!currentUser) {
                 router.replace("/auth");
+                return;
+            }
+
+            if (needsMinecraftNickname(currentUser)) {
+                router.replace(`/profile/nickname?returnUrl=${encodeURIComponent("/profile")}`);
                 return;
             }
 

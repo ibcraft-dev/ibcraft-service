@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace ibcraft.API.Endpoints;
 
@@ -240,10 +241,11 @@ public static class AuthUserEndpoints
             return Results.Ok(new
             {
                 id = user.Id,
-                name = user.Nikname ?? user.UserName ?? user.Email,
+                name = user.Nikname,
                 avatarIco = user.UserAvatar,
                 roles,
-                isBanned
+                isBanned,
+                requiresNickname = string.IsNullOrWhiteSpace(user.Nikname)
             });
         }
 
@@ -264,7 +266,25 @@ public static class AuthUserEndpoints
                 return Results.BadRequest("Nikname cannot be empty.");
             }
 
-            await userRepository.UpdateNikname(userId.Value, request.NewNikname.Trim());
+            var nextNikname = request.NewNikname.Trim();
+
+            if (nextNikname.Length > UserEntityFactory.MAX_NIKNAME_LENGTH)
+            {
+                return Results.BadRequest($"Nikname cannot be longer than {UserEntityFactory.MAX_NIKNAME_LENGTH} characters.");
+            }
+
+            if (!Regex.IsMatch(nextNikname, "^[A-Za-z0-9_]{3,16}$"))
+            {
+                return Results.BadRequest("Minecraft nickname can contain only latin letters, digits and underscore, from 3 to 16 characters.");
+            }
+
+            var existingUser = await userRepository.GetByNikname(nextNikname);
+            if (existingUser is not null && existingUser.Id != userId.Value)
+            {
+                return Results.Conflict("Nikname is already taken.");
+            }
+
+            await userRepository.UpdateNikname(userId.Value, nextNikname);
 
             return Results.Ok();
         }

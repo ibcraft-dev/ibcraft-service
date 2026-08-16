@@ -26,6 +26,7 @@ const demoRequests: AdminQuestionnaire[] = [
     {
         id: "demo-request-1",
         userId: "f2f9f4a1-8d6a-4f6a-bf45-2f3b9115e001",
+        userName: "Dragofox",
         age: 18,
         playingTime: "6 лет",
         acceptRule: true,
@@ -39,6 +40,7 @@ const demoRequests: AdminQuestionnaire[] = [
     {
         id: "demo-request-2",
         userId: "7a914cc4-f224-46af-a0a2-77426b89e002",
+        userName: "IlyaBot",
         age: 15,
         playingTime: "3 года",
         acceptRule: true,
@@ -52,6 +54,7 @@ const demoRequests: AdminQuestionnaire[] = [
     {
         id: "demo-request-3",
         userId: "a581733d-e0c5-44de-a10d-d47b78a2e003",
+        userName: "Nevormone",
         age: 13,
         playingTime: "1 год",
         acceptRule: false,
@@ -87,6 +90,8 @@ const getStatusClass = (status: string) => {
 };
 
 const shortId = (id: string) => id.length > 8 ? id.slice(0, 8) : id;
+
+const getApplicantName = (request: AdminQuestionnaire) => request.userName?.trim() || shortId(request.userId);
 
 export default function AdminSideRequest() {
     const [requests, setRequests] = useState<AdminQuestionnaire[]>(demoRequests);
@@ -162,7 +167,7 @@ export default function AdminSideRequest() {
             .filter((request) => {
                 if (!normalizedSearch) return true;
 
-                return `${request.userId} ${request.id} ${getDescription(request)}`
+                return `${request.userName ?? ""} ${request.userId} ${request.id} ${getDescription(request)}`
                     .toLowerCase()
                     .includes(normalizedSearch);
             });
@@ -312,7 +317,7 @@ export default function AdminSideRequest() {
                                     Заявка #{shortId(request.id)}
                                     <em className={getStatusClass(request.status)}>{getStatusLabel(request.status)}</em>
                                 </span>
-                                <small>Игрок: {shortId(request.userId)} · Возраст: {request.age} · Minecraft: {request.playingTime}</small>
+                                <small>Игрок: {getApplicantName(request)} · Возраст: {request.age} · Minecraft: {request.playingTime}</small>
                             </button>
 
                             <div className={style.requestMeta}>
@@ -393,11 +398,12 @@ export default function AdminSideRequest() {
                             <div>
                                 <span className={style.kicker}>Предпросмотр заявки</span>
                                 <h2>Заявка #{shortId(activeRequest.id)}</h2>
-                                <p>Пользователь: {activeRequest.userId}</p>
+                                <p>Пользователь: {getApplicantName(activeRequest)} · ID: {activeRequest.userId}</p>
                             </div>
                         </header>
 
                         <div className={style.previewGrid}>
+                            <div><span>Никнейм</span><strong>{getApplicantName(activeRequest)}</strong></div>
                             <div><span>Статус</span><strong>{getStatusLabel(activeRequest.status)}</strong></div>
                             <div><span>Возраст</span><strong>{activeRequest.age}</strong></div>
                             <div><span>Опыт Minecraft</span><strong>{activeRequest.playingTime}</strong></div>

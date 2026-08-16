@@ -1,7 +1,7 @@
 import axios from "axios";
 import api from "../api/api";
 import Cookies from "js-cookie";
-import { TypefetchRegister } from "./IUser";
+import { TypefetchRegister, User } from "./IUser";
 
 const AUTH_STATE_CHANGED_EVENT = "auth-state-changed";
 
@@ -9,6 +9,20 @@ const notifyAuthStateChanged = () => {
     if (typeof window !== "undefined") {
         window.dispatchEvent(new Event(AUTH_STATE_CHANGED_EVENT));
     }
+};
+
+const needsMinecraftNickname = (user: User | null) => {
+    if (!user) {
+        return false;
+    }
+
+    const name = user.name?.trim();
+
+    return user.requiresNickname === true ||
+        !name ||
+        /^telegram.+@external\.ibcraft\.local$/i.test(name) ||
+        /^discord.+@external\.ibcraft\.local$/i.test(name) ||
+        /^google.+@external\.ibcraft\.local$/i.test(name);
 };
 
 const fetchUser = async () => {
@@ -214,5 +228,6 @@ export  {
     fetchUpdateNikname,
     fetchLogout,
     AUTH_STATE_CHANGED_EVENT,
+    needsMinecraftNickname,
     googleAuth,
     discordAuth };

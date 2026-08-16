@@ -9,7 +9,7 @@ import BubbleControler from "@components/EffectComponents/BubbleControler";
 import FormPass from "@components/forms/formspass";
 import ProtectedForm from "@components/forms/ProtectedForm";
 import Loader from "@components/Loader";
-import { fetchUser } from "@hooks/hookUser";
+import { fetchUser, needsMinecraftNickname } from "@hooks/hookUser";
 import { User } from "@hooks/IUser";
 
 export default function GetPenetrationPage() {
@@ -26,6 +26,11 @@ export default function GetPenetrationPage() {
 
             if (!currentUser) {
                 router.replace("/auth");
+                return;
+            }
+
+            if (needsMinecraftNickname(currentUser)) {
+                router.replace(`/profile/nickname?returnUrl=${encodeURIComponent("/profile/get-pass")}`);
                 return;
             }
 

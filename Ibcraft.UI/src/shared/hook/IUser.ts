@@ -4,6 +4,7 @@ interface User {
     avatarIco?: string;
     roles?: string[];
     isBanned?: boolean;
+    requiresNickname?: boolean;
 }
 
 

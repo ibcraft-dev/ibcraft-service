@@ -5,6 +5,7 @@ namespace ibcraftservice.Core.Quesionnaire
     public record QuesionnaireResponse(
             [Required] Guid Id,
             [Required] Guid UserId,
+            string? UserName,
             [Required] int Age,
             [Required] string PlayingTime,
             [Required] bool AcceptRule,

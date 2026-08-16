@@ -141,11 +141,11 @@ namespace Ibcraft.Application.Service
 
                 if (user == null)
                 {
-                    var userName = CreateExternalUserName(provider, providerKey, displayName);
+                    var userName = CreateExternalUserName(provider, providerKey);
 
                     user = new UserEntity
                     {
-                        Nikname = userName,
+                        Nikname = null,
                         UserName = userName,
                         Email = normalizedEmail,
                         EmailConfirmed = true
@@ -168,11 +168,6 @@ namespace Ibcraft.Application.Service
                 }
                 else if (string.IsNullOrWhiteSpace(user.UserAvatar) && !string.IsNullOrWhiteSpace(avatarUrl))
                 {
-                    if (string.IsNullOrWhiteSpace(user.Nikname) || user.Nikname == user.Email)
-                    {
-                        user.Nikname = CreateExternalUserName(provider, providerKey, displayName);
-                    }
-
                     user.UserAvatar = avatarUrl;
                     await _userManager.UpdateAsync(user);
                 }
@@ -197,12 +192,6 @@ namespace Ibcraft.Application.Service
                 shouldUpdateUser = true;
             }
 
-            if (ShouldReplaceExternalFallbackName(user, provider))
-            {
-                user.Nikname = CreateExternalUserName(provider, providerKey, displayName);
-                shouldUpdateUser = true;
-            }
-
             if (shouldUpdateUser)
             {
                 await _userManager.UpdateAsync(user);
@@ -211,29 +200,11 @@ namespace Ibcraft.Application.Service
             await SignInUserAsync(user);
         }
 
-        private static bool ShouldReplaceExternalFallbackName(UserEntity user, string provider)
+        private static string CreateExternalUserName(string provider, string providerKey)
         {
-            if (string.IsNullOrWhiteSpace(user.Nikname))
-            {
-                return true;
-            }
-
-            if (user.Nikname == user.Email)
-            {
-                return true;
-            }
-
-            var fallbackPrefix = $"{provider.ToLowerInvariant()}_";
-
-            return user.Nikname.StartsWith(fallbackPrefix, StringComparison.OrdinalIgnoreCase) &&
-                   user.Nikname.EndsWith("@external.ibcraft.local", StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static string CreateExternalUserName(string provider, string providerKey, string? displayName)
-        {
-            var userName = string.IsNullOrWhiteSpace(displayName)
-                ? $"{provider}_{providerKey}"
-                : displayName.Trim();
+            var safeProvider = new string(provider.Where(char.IsLetterOrDigit).ToArray());
+            var safeProviderKey = new string(providerKey.Where(char.IsLetterOrDigit).ToArray());
+            var userName = $"{safeProvider}{safeProviderKey}";
 
             return userName.Length <= UserEntityFactory.MAX_NIKNAME_LENGTH
                 ? userName

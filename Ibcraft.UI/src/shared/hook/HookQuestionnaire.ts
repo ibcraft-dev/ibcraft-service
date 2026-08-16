@@ -15,6 +15,7 @@ type QuesionnaireType = {
 type AdminQuestionnaire = {
     id: string;
     userId: string;
+    userName?: string;
     age: number;
     playingTime: string;
     acceptRule: boolean;
