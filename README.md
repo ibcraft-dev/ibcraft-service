@@ -29,6 +29,107 @@ docker compose -f docker-compose.dev.yml down
 docker compose -f docker-compose.dev.yml down -v
 ```
 
+## Настройка внешней авторизации
+
+Скопируй `.env.dev.example` в `.env.dev` и заполни ключи провайдеров:
+
+```text
+Authentication__Google__ClientId=
+Authentication__Google__ClientSecret=
+Authentication__Discord__ClientId=
+Authentication__Discord__ClientSecret=
+Authentication__Telegram__BotToken=
+NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=
+NEXT_PUBLIC_SERVER_URL_HTTP=http://localhost:8080
+```
+
+### Google
+
+1. Открой Google Cloud Console: `https://console.cloud.google.com/`
+2. Создай проект или выбери существующий.
+3. Перейди в `APIs & Services` -> `OAuth consent screen` и настрой экран согласия.
+4. Перейди в `Credentials` -> `Create credentials` -> `OAuth client ID`.
+5. Тип приложения: `Web application`.
+6. В `Authorized redirect URIs` добавь:
+
+```text
+http://localhost:8080/api/auth/google/callback
+```
+
+Для проверки через ngrok добавь еще:
+
+```text
+https://your-backend.ngrok-free.dev/api/auth/google/callback
+```
+
+После создания скопируй `Client ID` и `Client secret` в `.env.dev`.
+
+### Discord
+
+1. Открой Discord Developer Portal: `https://discord.com/developers/applications`
+2. Создай приложение.
+3. Перейди в `OAuth2`.
+4. Скопируй `Client ID` и `Client Secret` в `.env.dev`.
+5. В `Redirects` добавь:
+
+```text
+http://localhost:8080/api/auth/discord/callback
+```
+
+Для проверки через ngrok добавь еще:
+
+```text
+https://your-backend.ngrok-free.dev/api/auth/discord/callback
+```
+
+### Telegram
+
+Токен берется у BotFather:
+
+1. Открой Telegram и найди `@BotFather`.
+2. Выполни `/newbot`.
+3. Укажи имя и username бота.
+4. BotFather выдаст token. Его нужно вставить в:
+
+```text
+Authentication__Telegram__BotToken=
+```
+
+Username бота без `@` вставь в:
+
+```text
+NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=
+```
+
+Проверять Telegram-авторизацию нужно через публичный HTTPS-домен, например через ngrok. Telegram Login Widget не работает нормально с обычным `localhost`, потому что виджет и callback должны открываться с доступного Telegram домена.
+
+Пример:
+
+```powershell
+ngrok http 3000
+ngrok http 8080
+```
+
+После этого в `.env.dev` укажи публичные адреса:
+
+```text
+NEXT_PUBLIC_SERVER_URL_HTTP=https://your-backend.ngrok-free.dev
+Cors__Origins__0=http://localhost:3000
+Cors__Origins__1=https://your-frontend.ngrok-free.dev
+```
+
+В BotFather для бота выполни `/setdomain` и укажи frontend-домен ngrok:
+
+```text
+your-frontend.ngrok-free.dev
+```
+
+После смены `.env.dev` перезапусти dev-контейнеры:
+
+```powershell
+docker compose -f docker-compose.dev.yml up --build
+```
+
 ## Создание администратора
 
 Пароль должен соответствовать правилам Identity: минимум 8 символов, заглавная буква, строчная буква, цифра и спецсимвол.
