@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace ibcraft.API.Endpoints;
 
@@ -26,19 +29,19 @@ public static class AuthUserEndpoints
         group.MapDelete("delete-user", DeleteUser).RequireAuthorization();
         group.MapGet("/google", authAccountGoogle);
         group.MapGet("/google/callback", callbackGoogle).WithName("GoogleLoginCallback");
+        group.MapGet("/discord", authAccountDiscord);
+        group.MapGet("/discord/callback", callbackDiscord).WithName("DiscordLoginCallback");
+        group.MapGet("/telegram/callback", callbackTelegram).WithName("TelegramLoginCallback");
 
         return builder;
     }
 
-    private static async Task<IResult> authAccountGoogle(
-    [FromQuery] string returnUrl,
-    [FromServices] LinkGenerator linkGenerator,
-    HttpContext httpContext)
+    private static IResult authAccountGoogle([FromQuery] string returnUrl)
     {
         
         var props = new AuthenticationProperties
         {
-            RedirectUri = $"/api/auth/google/callback?returnUrl={returnUrl}"
+            RedirectUri = $"/api/auth/google/callback?returnUrl={Uri.EscapeDataString(returnUrl)}"
         };
 
         return Results.Challenge(props, new[] { "Google" });
@@ -57,11 +60,133 @@ public static class AuthUserEndpoints
         }
 
         await accountService.LoginWithGoogleAsync(result.Principal);
+        await context.SignOutAsync("External");
 
         return Results.Redirect(returnUrl);
     }
 
-     private static async Task<IResult> DeleteUser()
+    private static IResult authAccountDiscord([FromQuery] string returnUrl)
+    {
+        var props = new AuthenticationProperties
+        {
+            RedirectUri = $"/api/auth/discord/callback?returnUrl={Uri.EscapeDataString(returnUrl)}"
+        };
+
+        return Results.Challenge(props, new[] { "Discord" });
+    }
+
+    private static async Task<IResult> callbackDiscord(
+        [FromQuery] string returnUrl,
+        HttpContext context,
+        IAccountService accountService)
+    {
+        var result = await context.AuthenticateAsync("External");
+
+        if (!result.Succeeded || result.Principal == null)
+        {
+            return Results.Redirect("/login?error=external_login_failed");
+        }
+
+        var providerKey = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrWhiteSpace(providerKey))
+        {
+            return Results.Redirect("/login?error=external_login_failed");
+        }
+
+        var email = result.Principal.FindFirstValue(ClaimTypes.Email);
+        var username = result.Principal.FindFirstValue(ClaimTypes.Name);
+        var avatarHash = result.Principal.FindFirstValue("urn:discord:avatar");
+        var avatarUrl = string.IsNullOrWhiteSpace(avatarHash)
+            ? null
+            : $"https://cdn.discordapp.com/avatars/{providerKey}/{avatarHash}.png";
+
+        await accountService.LoginWithExternalAsync("Discord", providerKey, email, username, avatarUrl);
+        await context.SignOutAsync("External");
+
+        return Results.Redirect(returnUrl);
+    }
+
+    private static async Task<IResult> callbackTelegram(
+        [FromQuery] string returnUrl,
+        HttpContext context,
+        IAccountService accountService,
+        IConfiguration configuration)
+    {
+        var botToken = configuration["Authentication:Telegram:BotToken"];
+
+        if (string.IsNullOrWhiteSpace(botToken))
+        {
+            return Results.Redirect("/login?error=telegram_not_configured");
+        }
+
+        var authData = context.Request.Query
+            .Where(x => x.Key != "returnUrl")
+            .ToDictionary(x => x.Key, x => x.Value.ToString());
+
+        if (!IsValidTelegramAuthData(authData, botToken, configuration))
+        {
+            return Results.Redirect("/login?error=telegram_auth_failed");
+        }
+
+        var providerKey = authData["id"];
+        var username = authData.GetValueOrDefault("username");
+        var firstName = authData.GetValueOrDefault("first_name");
+        var lastName = authData.GetValueOrDefault("last_name");
+        var displayName = string.Join(" ", new[] { firstName, lastName }.Where(x => !string.IsNullOrWhiteSpace(x)));
+        var avatarUrl = authData.GetValueOrDefault("photo_url");
+        var email = $"telegram_{providerKey}@external.ibcraft.local";
+
+        await accountService.LoginWithExternalAsync(
+            "Telegram",
+            providerKey,
+            email,
+            string.IsNullOrWhiteSpace(username) ? displayName : username,
+            avatarUrl);
+
+        return Results.Redirect(returnUrl);
+    }
+
+    private static bool IsValidTelegramAuthData(
+        IReadOnlyDictionary<string, string> authData,
+        string botToken,
+        IConfiguration configuration)
+    {
+        if (!authData.TryGetValue("hash", out var receivedHash) ||
+            string.IsNullOrWhiteSpace(receivedHash) ||
+            !authData.TryGetValue("id", out var id) ||
+            string.IsNullOrWhiteSpace(id) ||
+            !authData.TryGetValue("auth_date", out var authDateValue) ||
+            !long.TryParse(authDateValue, out var authDateUnix))
+        {
+            return false;
+        }
+
+        var maxAgeMinutes = configuration.GetValue("Authentication:Telegram:MaxAuthAgeMinutes", 1440);
+        var authDate = DateTimeOffset.FromUnixTimeSeconds(authDateUnix);
+
+        if (DateTimeOffset.UtcNow - authDate > TimeSpan.FromMinutes(maxAgeMinutes))
+        {
+            return false;
+        }
+
+        var dataCheckString = string.Join(
+            "\n",
+            authData
+                .Where(x => x.Key != "hash")
+                .OrderBy(x => x.Key, StringComparer.Ordinal)
+                .Select(x => $"{x.Key}={x.Value}"));
+
+        var secretKey = SHA256.HashData(Encoding.UTF8.GetBytes(botToken));
+        using var hmac = new HMACSHA256(secretKey);
+        var computedHash = Convert.ToHexString(hmac.ComputeHash(Encoding.UTF8.GetBytes(dataCheckString))).ToLowerInvariant();
+
+        return CryptographicOperations.FixedTimeEquals(
+            Encoding.UTF8.GetBytes(computedHash),
+            Encoding.UTF8.GetBytes(receivedHash.ToLowerInvariant()));
+    }
+
+     private static IResult DeleteUser()
         {
             return Results.Ok();
         }
@@ -69,8 +194,27 @@ public static class AuthUserEndpoints
 
         private static IResult Logout(HttpContext context)
         {
-            context.Response.Cookies.Delete("ACCESS_TOKEN");
+            DeleteAuthCookies(context);
             return Results.Ok();
+        }
+
+        private static void DeleteAuthCookies(HttpContext context)
+        {
+            var isHttps = context.Request.IsHttps;
+            var sameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax;
+
+            foreach (var cookieName in new[] { "ACCESS_TOKEN", "REFRESH_TOKEN" })
+            {
+                foreach (var path in new[] { "/", "/api/auth", "/api/admin" })
+                {
+                    context.Response.Cookies.Delete(cookieName, new CookieOptions
+                    {
+                        Path = path,
+                        Secure = isHttps,
+                        SameSite = sameSite
+                    });
+                }
+            }
         }
 
         private static async Task<IResult> GetMe(
@@ -92,13 +236,16 @@ public static class AuthUserEndpoints
             }
 
             var roles = await userManager.GetRolesAsync(user);
+            var isBanned = user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow;
 
             return Results.Ok(new
             {
                 id = user.Id,
-                name = user.Nikname ?? user.UserName ?? user.Email,
+                name = user.Nikname,
                 avatarIco = user.UserAvatar,
-                roles
+                roles,
+                isBanned,
+                requiresNickname = string.IsNullOrWhiteSpace(user.Nikname)
             });
         }
 
@@ -119,7 +266,25 @@ public static class AuthUserEndpoints
                 return Results.BadRequest("Nikname cannot be empty.");
             }
 
-            await userRepository.UpdateNikname(userId.Value, request.NewNikname.Trim());
+            var nextNikname = request.NewNikname.Trim();
+
+            if (nextNikname.Length > UserEntityFactory.MAX_NIKNAME_LENGTH)
+            {
+                return Results.BadRequest($"Nikname cannot be longer than {UserEntityFactory.MAX_NIKNAME_LENGTH} characters.");
+            }
+
+            if (!Regex.IsMatch(nextNikname, "^[A-Za-z0-9_]{3,16}$"))
+            {
+                return Results.BadRequest("Minecraft nickname can contain only latin letters, digits and underscore, from 3 to 16 characters.");
+            }
+
+            var existingUser = await userRepository.GetByNikname(nextNikname);
+            if (existingUser is not null && existingUser.Id != userId.Value)
+            {
+                return Results.Conflict("Nikname is already taken.");
+            }
+
+            await userRepository.UpdateNikname(userId.Value, nextNikname);
 
             return Results.Ok();
         }

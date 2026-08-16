@@ -1,84 +1,325 @@
 "use client";
 
-import Image from "next/image"
-import AdminNavUser from "./adminNavUser"
-import style from "./adminNav.module.css"
-import user_ico from "@static/user.svg"
-import dot_ico from "@static/icon_dots.svg"
-import Dropdown from "../Dropdown/Dropdown"
-import { useEffect, useRef, useState } from "react"
+import {
+    Ban,
+    ChevronLeft,
+    ChevronRight,
+    MoreVertical,
+    Pencil,
+    Search,
+    Shield,
+    Trash2,
+    UserRound,
+} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+    AdminManagedUser,
+    deleteAdminUser,
+    fetchAdminUsers,
+    toggleAdminUserBan,
+} from "@hooks/hookAdmin";
 import AdminContainer from "./adminContainer";
 import AdminSideBarUser from "./adminSideBarUser";
+import style from "./adminNav.module.css";
 
-// Mock data for users
-const users = [
-    {username: "IlyaBot", role: "Admin", email: "admin@mail.com", discord: "IlyaBot#1234" , createdAt: "2023-10-01T12:00:00Z", emailVerified: true}, 
-    {username: "Dragofox", role: "User", email: "foxgay@mail.com", discord: "Dragofox#5678", createdAt: "2023-09-01T13:00:00Z", emailVerified: true},];
+const demoUsers: AdminManagedUser[] = [
+    {
+        id: "demo-admin",
+        username: "IlyaBot",
+        role: "Admin",
+        roles: ["Admin"],
+        email: "admin@mail.com",
+        createdAt: "2023-10-01T12:00:00Z",
+        emailVerified: true,
+        isBanned: false,
+    },
+    {
+        id: "demo-user",
+        username: "Dragofox",
+        role: "User",
+        roles: ["User"],
+        email: "foxgay@mail.com",
+        createdAt: "2023-09-01T13:00:00Z",
+        emailVerified: true,
+        isBanned: false,
+    },
+];
 
 export default function AdminUsers() {
-
-    const [openIndex, setOpenIndex] = useState<number | null>(null);
-    const containerRef = useRef<HTMLUListElement>(null);
-    const [selectedUser, setSelectedUser] = useState<typeof users[0] | null>(null);
-
-    const handleToggle = (index: number) => {
-        setOpenIndex(prev => (prev === index ? null : index));
-    };
+    const [users, setUsers] = useState<AdminManagedUser[]>(demoUsers);
+    const [selectedUser, setSelectedUser] = useState<AdminManagedUser | null>(null);
+    const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+    const [search, setSearch] = useState("");
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [isLoading, setIsLoading] = useState(false);
+    const [message, setMessage] = useState("Демо-данные, пока API недоступен.");
+    const menuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (
-                containerRef.current &&
-                !containerRef.current.contains(event.target as Node)
-            ) {
-                setOpenIndex(null); // Закрыть всё
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setOpenMenuId(null);
             }
         };
 
         document.addEventListener("click", handleClickOutside);
-        return () => {
-            document.removeEventListener("click", handleClickOutside);
-        };
+        return () => document.removeEventListener("click", handleClickOutside);
     }, []);
 
+    useEffect(() => {
+        setPage(1);
+    }, [search, pageSize]);
+
+    useEffect(() => {
+        const timeoutId = window.setTimeout(async () => {
+            setIsLoading(true);
+            const response = await fetchAdminUsers(search.trim());
+
+            if (response.data) {
+                setUsers(response.data);
+                setMessage(response.data.length ? "Данные загружены из API." : "Пользователи не найдены.");
+            } else {
+                const normalizedSearch = search.trim().toLowerCase();
+                const filteredDemoUsers = demoUsers.filter((user) =>
+                    user.username.toLowerCase().includes(normalizedSearch)
+                );
+
+                setUsers(filteredDemoUsers);
+                setMessage("API недоступен, показаны демо-данные.");
+            }
+
+            setIsLoading(false);
+        }, 280);
+
+        return () => window.clearTimeout(timeoutId);
+    }, [search]);
+
+    const totalAdmins = useMemo(
+        () => users.filter((user) => user.role.toLowerCase() === "admin").length,
+        [users]
+    );
+
+    const pageCount = Math.max(1, Math.ceil(users.length / pageSize));
+    const visibleUsers = users.slice((page - 1) * pageSize, page * pageSize);
+    const firstVisible = users.length ? (page - 1) * pageSize + 1 : 0;
+    const lastVisible = Math.min(page * pageSize, users.length);
+
+    const handleUserUpdate = (updatedUser: AdminManagedUser) => {
+        setUsers((currentUsers) =>
+            currentUsers.map((user) => (user.id === updatedUser.id ? updatedUser : user))
+        );
+        setSelectedUser(updatedUser);
+    };
+
+    const handleBanToggle = async (user: AdminManagedUser) => {
+        setOpenMenuId(null);
+        const nextBannedState = !user.isBanned;
+        const response = await toggleAdminUserBan(user.id, nextBannedState);
+
+        if (response.data) {
+            setUsers((currentUsers) =>
+                currentUsers.map((currentUser) =>
+                    currentUser.id === user.id ? response.data : currentUser
+                )
+            );
+            setMessage(nextBannedState ? `${user.username} забанен.` : `${user.username} разбанен.`);
+            return;
+        }
+
+        setMessage("Не удалось изменить бан. Проверь API или права администратора.");
+    };
+
+    const handleDelete = async (user: AdminManagedUser) => {
+        setOpenMenuId(null);
+
+        if (!window.confirm(`Удалить пользователя ${user.username}?`)) {
+            return;
+        }
+
+        const response = await deleteAdminUser(user.id);
+
+        if (response.status >= 200 && response.status < 300) {
+            setUsers((currentUsers) => currentUsers.filter((currentUser) => currentUser.id !== user.id));
+            setMessage(`${user.username} удален.`);
+            if (selectedUser?.id === user.id) {
+                setSelectedUser(null);
+            }
+            return;
+        }
+
+        setMessage("Не удалось удалить пользователя. Проверь API или права администратора.");
+    };
+
     return (
-        <>
-           <AdminContainer>
-                <AdminNavUser />
-                <ul ref={containerRef} className={style.itemsListUser}>
-                    {users.map((user, index) => (
-                        <li key={index} className={style.itemUser}>
-                            <div className={style.userTitle}>
-                                    <input type="checkbox" name="" id="" />
-                                    <Image src={user_ico} width={20} height={20} alt="user" className={style.user_iocns} />
-                                    {user.role === "Admin" && < i className='bx  bxs-crown'  ></i> }
-                                    <a href="#" className={style.user_name} onClick={() => setSelectedUser(user)}>{user.username}</a>
+        <AdminContainer>
+            <section className={style.usersPage}>
+                <header className={style.usersHeader}>
+                    <div>
+                        <span className={style.kicker}>Админ-панель</span>
+                        <h1>Пользователи</h1>
+                        <p>Поиск, роли и быстрые действия по аккаунтам сервера.</p>
+                    </div>
+
+                    <div className={style.usersStats}>
+                        <div>
+                            <strong>{users.length}</strong>
+                            <span>найдено</span>
+                        </div>
+                        <div>
+                            <strong>{totalAdmins}</strong>
+                            <span>админов</span>
+                        </div>
+                    </div>
+                </header>
+
+                <div className={style.usersToolbar}>
+                    <label className={style.searchBox}>
+                        <Search size={19} />
+                        <input
+                            value={search}
+                            onChange={(event) => setSearch(event.target.value)}
+                            placeholder="Поиск по нику"
+                            type="search"
+                        />
+                    </label>
+                    <span className={style.toolbarStatus}>{isLoading ? "Загрузка..." : message}</span>
+                </div>
+
+                <div className={style.usersList} ref={menuRef}>
+                    {visibleUsers.map((user) => (
+                        <article className={style.userRow} key={user.id}>
+                            <button
+                                className={style.userMain}
+                                type="button"
+                                onClick={() => setSelectedUser(user)}
+                            >
+                                <span className={style.avatarBadge}>
+                                    {user.role.toLowerCase() === "admin" ? <Shield size={20} /> : <UserRound size={20} />}
+                                </span>
+                                <span className={style.userText}>
+                                    <span>
+                                        {user.username}
+                                        <em className={user.role.toLowerCase() === "admin" ? style.roleAdmin : style.roleUser}>
+                                            {user.role}
+                                        </em>
+                                    </span>
+                                    <small>{user.email || "Email не указан"}</small>
+                                </span>
+                            </button>
+
+                            <div className={style.userMeta}>
+                                <span>{new Date(user.createdAt).toLocaleDateString("ru-RU")}</span>
+                                <span className={user.emailVerified ? style.verified : style.unverified}>
+                                    {user.emailVerified ? "Email подтвержден" : "Email не подтвержден"}
+                                </span>
+                                {user.isBanned && <span className={style.banned}>Забанен</span>}
                             </div>
-                            <div className={style.opt}>
-                                    <Dropdown isOpen={openIndex === index} onToggle={() => handleToggle(index)} 
-                                    icon={<Image src={dot_ico} width={20} height={20} alt="dots" />} >
-                                        <ul className={style.dropdownContent}>
-                                            <li><a href="#" onClick={() => setSelectedUser(user)}>Edit</a></li>
-                                            {user.role !== "Admin" && 
-                                                <li><a href="#">Delete</a></li>  
-                                            }
-                                            {user.role !== "Admin" && 
-                                                <li><a href="#">Ban</a></li>  
-                                            }
-                                        </ul>
-                                    </Dropdown>
+
+                            <div className={style.actionCell}>
+                                <button
+                                    type="button"
+                                    className={style.moreButton}
+                                    aria-label={`Действия для ${user.username}`}
+                                    onClick={(event) => {
+                                        event.stopPropagation();
+                                        setOpenMenuId((currentId) => currentId === user.id ? null : user.id);
+                                    }}
+                                >
+                                    <MoreVertical size={21} />
+                                </button>
+
+                                {openMenuId === user.id && (
+                                    <div className={style.actionMenu}>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setSelectedUser(user);
+                                                setOpenMenuId(null);
+                                            }}
+                                        >
+                                            <Pencil size={16} />
+                                            Изменить
+                                        </button>
+                                        {user.role.toLowerCase() !== "admin" && (
+                                            <>
+                                                <button type="button" onClick={() => handleBanToggle(user)}>
+                                                    <Ban size={16} />
+                                                    {user.isBanned ? "Разбанить" : "Забанить"}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className={style.dangerAction}
+                                                    onClick={() => handleDelete(user)}
+                                                >
+                                                    <Trash2 size={16} />
+                                                    Удалить
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
                             </div>
-                        </li>
+                        </article>
                     ))}
-                </ul>
-                {selectedUser && (
-                    <AdminSideBarUser
-                        isOpen={!!selectedUser}
-                        onClose={() => setSelectedUser(null)}
-                        user={selectedUser}
-                    />
-                )}
-           </AdminContainer>
-        </>
-    )
+
+                    {!users.length && (
+                        <div className={style.emptyState}>
+                            <Search size={32} />
+                            <p>Пользователи по такому нику не найдены.</p>
+                        </div>
+                    )}
+
+                    {!!users.length && (
+                        <footer className={style.usersFooter}>
+                            <span>
+                                {firstVisible}-{lastVisible} из {users.length}
+                            </span>
+
+                            <label className={style.pageSizeSelect}>
+                                На странице
+                                <select
+                                    value={pageSize}
+                                    onChange={(event) => setPageSize(Number(event.target.value))}
+                                >
+                                    <option value={10}>10</option>
+                                    <option value={20}>20</option>
+                                    <option value={30}>30</option>
+                                </select>
+                            </label>
+
+                            <div className={style.paginationControls}>
+                                <button
+                                    type="button"
+                                    onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
+                                    disabled={page === 1}
+                                    aria-label="Предыдущая страница"
+                                >
+                                    <ChevronLeft size={18} />
+                                </button>
+                                <strong>{page} из {pageCount}</strong>
+                                <button
+                                    type="button"
+                                    onClick={() => setPage((currentPage) => Math.min(pageCount, currentPage + 1))}
+                                    disabled={page === pageCount}
+                                    aria-label="Следующая страница"
+                                >
+                                    <ChevronRight size={18} />
+                                </button>
+                            </div>
+                        </footer>
+                    )}
+                </div>
+            </section>
+
+            {selectedUser && (
+                <AdminSideBarUser
+                    isOpen={!!selectedUser}
+                    onClose={() => setSelectedUser(null)}
+                    user={selectedUser}
+                    onUserUpdate={handleUserUpdate}
+                />
+            )}
+        </AdminContainer>
+    );
 }

@@ -1,55 +1,45 @@
 "use client";
 import { useEffect, useState } from "react";
-import style from "./Modal.module.css"
+import style from "./Modal.module.css";
 
-interface ModalProps{
+interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
+    canClose?: boolean;
     children: React.ReactNode;
 }
 
-export default function Modal({ isOpen, onClose, children}: ModalProps) {
+export default function Modal({ isOpen, onClose, canClose = true, children }: ModalProps) {
     const [overflow, setOverflow] = useState(false);
 
     useEffect(() => {
-        if (isOpen) {
-            setOverflow(true);
-        } else {
-            setOverflow(false);
-        }
+        setOverflow(isOpen);
     }, [isOpen]);
 
     useEffect(() => {
-        if (overflow) {
-            document.body.style.overflow = "hidden";
-        } else {
-            document.body.style.overflow = "";
-        }
+        document.body.style.overflow = overflow ? "hidden" : "";
     }, [overflow]);
-  
+
     useEffect(() => {
         const handleEscape = (event: KeyboardEvent) => {
-            if (event.key === "Escape") onClose();
+            if (event.key === "Escape" && canClose) onClose();
         };
 
         if (isOpen) {
-            document.addEventListener("keydown", handleEscape)
-        } else {
-            document.removeEventListener("keydown", handleEscape)
+            document.addEventListener("keydown", handleEscape);
         }
 
-        return () => document.removeEventListener("keydown", handleEscape)
-
-    }, [isOpen]);
+        return () => document.removeEventListener("keydown", handleEscape);
+    }, [isOpen, canClose, onClose]);
 
     if (!isOpen) return null;
 
     return (
-        <div className={style.modal_overlay} onClick={onClose}>
-            <div className={style.modal_content} onClick={(e) => e.stopPropagation()}>
+        <div className={style.modal_overlay} onClick={canClose ? onClose : undefined}>
+            <div className={style.modal_content} onClick={(event) => event.stopPropagation()}>
                 {children}
-                <button className={style.close_button} onClick={onClose}>Закрыть</button>
+                {canClose ? <button className={style.close_button} onClick={onClose}>Закрыть</button> : null}
             </div>
         </div>
-    )
+    );
 }

@@ -2,6 +2,28 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: false,
+  async rewrites() {
+    const backendUrl = process.env.BACKEND_INTERNAL_URL ?? "http://backend_ibcraft:8080";
+
+    return [
+      {
+        source: "/signin-google",
+        destination: `${backendUrl}/signin-google`,
+      },
+      {
+        source: "/signin-discord",
+        destination: `${backendUrl}/signin-discord`,
+      },
+      {
+        source: "/api/:path*",
+        destination: `${backendUrl}/api/:path*`,
+      },
+      {
+        source: "/static/:path*",
+        destination: `${backendUrl}/static/:path*`,
+      },
+    ];
+  },
   env: {
     NEXT_PUBLIC_SERVER_URL_HTTP: process.env.NEXT_PUBLIC_SERVER_URL_HTTP,
     NEXT_PUBLIC_SERVER_URL_HTTPS: process.env.NEXT_PUBLIC_SERVER_URL_HTTPS,

@@ -9,7 +9,7 @@ import { Camera, CheckCircle2, Clock3, Crown, LogOut, PenLine, ShieldAlert, User
 import BubbleControler from "@components/EffectComponents/BubbleControler";
 import Loader from "@components/Loader";
 import Modal from "@components/Modal";
-import { fetchLogout, fetchUpdateNikname, fetchUpdateUserAvatar, fetchUser } from "@hooks/hookUser";
+import { fetchLogout, fetchUpdateNikname, fetchUpdateUserAvatar, fetchUser, needsMinecraftNickname } from "@hooks/hookUser";
 import { User } from "@hooks/IUser";
 import { useStatus } from "@hooks/useStatus";
 import icouser from "@static/GkSrQGFXUAA0Ar_.png";
@@ -71,10 +71,23 @@ function getProfileStatus(status: string | null): ProfileStatus {
     }
 }
 
+function getBannedProfileStatus(): ProfileStatus {
+    return {
+        title: "Вы забанены",
+        text: "Доступ к серверу ограничен администрацией. Если это ошибка, обратитесь к администрации.",
+        tone: style.rejected,
+        icon: <ShieldAlert size={28} />,
+        canApply: false,
+    };
+}
+
 function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User | null) => void }) {
     const router = useRouter();
     const status = useStatus(user.id ?? "");
-    const profileStatus = useMemo(() => getProfileStatus(status), [status]);
+    const profileStatus = useMemo(
+        () => user.isBanned ? getBannedProfileStatus() : getProfileStatus(status),
+        [status, user.isBanned]
+    );
     const [isNameModalOpen, setIsNameModalOpen] = useState(false);
     const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -82,11 +95,19 @@ function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User
     const [preview, setPreview] = useState<string | null>(null);
     const [file, setFile] = useState<File | null>(null);
     const [message, setMessage] = useState<string | null>(null);
+    const mustSetNickname = needsMinecraftNickname(user);
+    const displayName = mustSetNickname ? "Нужно задать никнейм" : user.name;
 
     const avatarSrc = user.avatarIco
         ? `${process.env.NEXT_PUBLIC_SERVER_URL_HTTP}${user.avatarIco}`
         : null;
     const isAdmin = user.roles?.includes("Admin") ?? false;
+    const isModerator = user.roles?.includes("Moderator") ?? false;
+    const userRoleLabel = isAdmin
+        ? "Админ"
+        : isModerator
+            ? "Модератор"
+            : "Обычный пользователь";
 
     useEffect(() => {
         return () => {
@@ -96,6 +117,13 @@ function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User
         };
     }, [preview]);
 
+    useEffect(() => {
+        if (mustSetNickname) {
+            setIsNameModalOpen(true);
+            setNickname("");
+        }
+    }, [mustSetNickname]);
+
     const refreshUser = async () => {
         const freshUser = await fetchUser();
         onUserChange(freshUser);
@@ -104,7 +132,7 @@ function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User
     const handleLogout = async () => {
         await fetchLogout();
         onUserChange(null);
-        router.replace("/auth");
+        router.replace("/");
     };
 
     const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -163,6 +191,7 @@ function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User
         if (response.status === 200) {
             await refreshUser();
             setIsNameModalOpen(false);
+            setMessage(null);
         } else {
             setMessage("Не получилось обновить никнейм.");
         }
@@ -189,7 +218,7 @@ function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User
                         <div className={style.identity}>
                             <span className={style.kicker}>Личный кабинет</span>
                             <div className={style.nameRow}>
-                                <h1>{user.name || "Игрок IB Craft"}</h1>
+                                <h1>{displayName || "Игрок IB Craft"}</h1>
                                 {isAdmin ? (
                                     <span className={style.adminBadge} title="Администратор">
                                         <Crown size={19} />
@@ -229,24 +258,25 @@ function Profile({ user, onUserChange }: { user: User; onUserChange: (user: User
                             <h2>Аккаунт</h2>
                             <div className={style.infoRow}>
                                 <span>Имя</span>
-                                <strong>{user.name || "Не задано"}</strong>
-                            </div>
-                            <div className={style.infoRow}>
-                                <span>Аватар</span>
-                                <strong>{user.avatarIco ? "Загружен" : "Стандартный"}</strong>
+                                <strong>{displayName || "Не задано"}</strong>
                             </div>
                             <div className={style.infoRow}>
                                 <span>Роль</span>
-                                <strong>{isAdmin ? "Admin" : "Player"}</strong>
+                                <strong>{userRoleLabel}</strong>
+                            </div>
+                            <div className={style.infoRow}>
+                                <span>Статус</span>
+                                <strong>{user.isBanned ? "Забанен" : "Активен"}</strong>
                             </div>
                         </section>
                     </div>
                 </section>
             </div>
 
-            <Modal isOpen={isNameModalOpen} onClose={() => setIsNameModalOpen(false)}>
+            <Modal isOpen={isNameModalOpen} onClose={() => setIsNameModalOpen(false)} canClose={!mustSetNickname}>
                 <form className={style.modalForm} onSubmit={handleNicknameUpdate}>
-                    <h2>Смена никнейма</h2>
+                    <h2>{mustSetNickname ? "Задайте никнейм" : "Смена никнейма"}</h2>
+                    {mustSetNickname ? <p className={style.formHint}>После входа через внешний сервис нужно выбрать никнейм для профиля.</p> : null}
                     <input value={nickname} type="text" placeholder="Новый никнейм" onChange={(event) => setNickname(event.target.value)} />
                     {message ? <p className={style.formMessage}>{message}</p> : null}
                     <button type="submit" className={style.primaryButton} disabled={isSaving}>
@@ -287,6 +317,11 @@ export default function ProfilePage() {
 
             if (!currentUser) {
                 router.replace("/auth");
+                return;
+            }
+
+            if (needsMinecraftNickname(currentUser)) {
+                router.replace(`/profile/nickname?returnUrl=${encodeURIComponent("/profile")}`);
                 return;
             }
 

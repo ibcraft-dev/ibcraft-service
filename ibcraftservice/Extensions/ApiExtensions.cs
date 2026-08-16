@@ -1,10 +1,14 @@
 ﻿using Ibcraft.DataAccess;
 using Ibcraft.Infrastructure;
 using ibcraft.API.Endpoints;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 
 namespace ibcraft.API.Extensions
 {
@@ -30,6 +34,13 @@ namespace ibcraft.API.Extensions
             services.Configure<AuthOption>(configuration.GetSection(nameof(AuthOption)));
 
             var jwtOptions = configuration.GetSection(nameof(AuthOption)).Get<AuthOption>();
+            var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == Environments.Development;
+            var secureCookiePolicy = isDevelopment
+                ? CookieSecurePolicy.SameAsRequest
+                : CookieSecurePolicy.Always;
+            var oauthSameSite = isDevelopment
+                ? SameSiteMode.Lax
+                : SameSiteMode.None;
 
             services.AddAuthentication(opt =>
                 {
@@ -37,7 +48,11 @@ namespace ibcraft.API.Extensions
                 opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 opt.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            .AddCookie("External")
+            .AddCookie("External", options =>
+            {
+                options.Cookie.SameSite = oauthSameSite;
+                options.Cookie.SecurePolicy = secureCookiePolicy;
+            })
             .AddGoogle(options =>
             {
                 var clientId = configuration["Authentication:Google:ClientId"];
@@ -57,9 +72,62 @@ namespace ibcraft.API.Extensions
                 options.ClientSecret = clientSecret;
                 options.SignInScheme = "External";
 
-                options.CorrelationCookie.SameSite = SameSiteMode.None;
-                options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.CorrelationCookie.SameSite = oauthSameSite;
+                options.CorrelationCookie.SecurePolicy = secureCookiePolicy;
 
+            })
+            .AddOAuth("Discord", options =>
+            {
+                var clientId = configuration["Authentication:Discord:ClientId"];
+
+                if (clientId == null)
+                {
+                    throw new ArgumentNullException(nameof(clientId));
+                }
+
+                var clientSecret = configuration["Authentication:Discord:ClientSecret"];
+
+                if (clientSecret == null)
+                {
+                    throw new ArgumentNullException(nameof(clientSecret));
+                }
+
+                options.ClientId = clientId;
+                options.ClientSecret = clientSecret;
+                options.SignInScheme = "External";
+                options.CallbackPath = "/signin-discord";
+                options.AuthorizationEndpoint = "https://discord.com/api/oauth2/authorize";
+                options.TokenEndpoint = "https://discord.com/api/oauth2/token";
+                options.UserInformationEndpoint = "https://discord.com/api/users/@me";
+                options.Scope.Add("identify");
+                options.Scope.Add("email");
+
+                options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "id");
+                options.ClaimActions.MapJsonKey(ClaimTypes.Name, "username");
+                options.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
+                options.ClaimActions.MapJsonKey("urn:discord:avatar", "avatar");
+
+                options.CorrelationCookie.SameSite = oauthSameSite;
+                options.CorrelationCookie.SecurePolicy = secureCookiePolicy;
+
+                options.Events = new OAuthEvents
+                {
+                    OnCreatingTicket = async context =>
+                    {
+                        using var request = new HttpRequestMessage(HttpMethod.Get, context.Options.UserInformationEndpoint);
+                        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", context.AccessToken);
+
+                        using var response = await context.Backchannel.SendAsync(
+                            request,
+                            HttpCompletionOption.ResponseHeadersRead,
+                            context.HttpContext.RequestAborted);
+
+                        response.EnsureSuccessStatusCode();
+
+                        using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync(context.HttpContext.RequestAborted));
+                        context.RunClaimActions(payload.RootElement);
+                    }
+                };
             })
             .AddJwtBearer(options =>
             {
@@ -90,7 +158,7 @@ namespace ibcraft.API.Extensions
             
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+                options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin", "Moderator"));
             });
         }
     }

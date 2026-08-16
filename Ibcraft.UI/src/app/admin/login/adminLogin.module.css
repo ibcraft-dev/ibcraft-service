@@ -96,3 +96,42 @@
     opacity: .65;
     cursor: default;
 }
+
+.oauthBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.oauthBlock span {
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.oauthButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.07);
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 900;
+    transition: background-color .2s ease, transform .2s ease;
+}
+
+.oauthButton:hover {
+    background: var(--buttonhovercolor);
+    transform: translateY(-1px);
+}
+
+.telegramWidget {
+    min-height: 42px;
+}

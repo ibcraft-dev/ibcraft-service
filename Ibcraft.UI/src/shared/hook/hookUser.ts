@@ -1,7 +1,7 @@
 import axios from "axios";
 import api from "../api/api";
 import Cookies from "js-cookie";
-import { TypefetchRegister } from "./IUser";
+import { TypefetchRegister, User } from "./IUser";
 
 const AUTH_STATE_CHANGED_EVENT = "auth-state-changed";
 
@@ -9,6 +9,20 @@ const notifyAuthStateChanged = () => {
     if (typeof window !== "undefined") {
         window.dispatchEvent(new Event(AUTH_STATE_CHANGED_EVENT));
     }
+};
+
+const needsMinecraftNickname = (user: User | null) => {
+    if (!user) {
+        return false;
+    }
+
+    const name = user.name?.trim();
+
+    return user.requiresNickname === true ||
+        !name ||
+        /^telegram.+@external\.ibcraft\.local$/i.test(name) ||
+        /^discord.+@external\.ibcraft\.local$/i.test(name) ||
+        /^google.+@external\.ibcraft\.local$/i.test(name);
 };
 
 const fetchUser = async () => {
@@ -185,12 +199,20 @@ const fetchUpdateNikname = async (payload: { newNikname: string }) => {
     }
 };
 
-const googleAuth = () => {
+const googleAuth = (returnUrl?: string) => {
+    externalAuth("google", typeof returnUrl === "string" ? returnUrl : undefined);
+}
+
+const discordAuth = (returnUrl?: string) => {
+    externalAuth("discord", typeof returnUrl === "string" ? returnUrl : undefined);
+}
+
+const externalAuth = (provider: "google" | "discord", returnUrl?: string) => {
     const apiUrl = process.env.NEXT_PUBLIC_SERVER_URL_HTTP ?? "";
     const normalizedApiUrl = apiUrl.endsWith("/") ? apiUrl.slice(0, -1) : apiUrl;
-    const returnUrl = encodeURIComponent(window.location.origin);
+    const nextReturnUrl = encodeURIComponent(returnUrl ?? window.location.origin);
 
-    window.location.href = normalizedApiUrl + "/api/auth/google?returnUrl=" + returnUrl;
+    window.location.href = normalizedApiUrl + "/api/auth/" + provider + "?returnUrl=" + nextReturnUrl;
 }
 
 export  { 
@@ -206,5 +228,6 @@ export  {
     fetchUpdateNikname,
     fetchLogout,
     AUTH_STATE_CHANGED_EVENT,
-    googleAuth };
-
+    needsMinecraftNickname,
+    googleAuth,
+    discordAuth };

@@ -25,6 +25,7 @@ function Header() {
     const logout = async () => {
         await fetchLogout();
         setUser(null);
+        window.location.reload();
     }
 
     useEffect(() => {

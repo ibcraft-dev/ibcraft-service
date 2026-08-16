@@ -3,6 +3,8 @@ interface User {
     name?: string;
     avatarIco?: string;
     roles?: string[];
+    isBanned?: boolean;
+    requiresNickname?: boolean;
 }
 
 

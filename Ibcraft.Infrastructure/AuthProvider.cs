@@ -68,16 +68,21 @@ namespace Ibcraft.Infrastructure
 
         public void WriteAuthTokenAsHttpOnlyCookie(string cookieName, string token, DateTime expiration)
         {
-            if (_httpContextAccessor.HttpContext != null)
+            var httpContext = _httpContextAccessor.HttpContext;
+
+            if (httpContext != null)
             {
-                _httpContextAccessor.HttpContext.Response.Cookies.Append(cookieName,
+                var isHttps = httpContext.Request.IsHttps;
+
+                httpContext.Response.Cookies.Append(cookieName,
                     token, new CookieOptions
                     {
                         HttpOnly = true,
                         Expires = expiration,
                         IsEssential = true,
-                        Secure = true,
-                        SameSite = SameSiteMode.Strict
+                        Path = "/",
+                        Secure = isHttps,
+                        SameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax
                     });
             } else
             {
